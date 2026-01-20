@@ -43,6 +43,13 @@ const navItems: NavItem[] = [
         icon: DashboardIcon,
         requiredPermission: Permission.VIEW_ADMIN_DASHBOARD
     },
+    {
+        key: 'project',
+        title: 'Project Management',
+        href: '/admin-projects',
+        icon: AppIcon,
+        requiredPermission: Permission.VIEW_APPLICATION_MANAGEMENT
+    },
     // {
     //     key: 'application',
     //     title: 'Application Management',
@@ -166,7 +173,7 @@ export function SideNav(): React.JSX.Element {
             <Stack spacing={1} sx={{ p: 1 }}>
                 <Box sx={{ display: 'inline-center', justifyContent: 'center', alignItems: 'center' }}>
                     <Box sx={{ display: 'inline-center', justifyContent: 'center', alignItems: 'center', color: 'white', fontSize: 18, fontWeight: 'bold' }}>
-                        Deployment Manager
+                        Project Management
                     </Box>
                 </Box>
             </Stack>

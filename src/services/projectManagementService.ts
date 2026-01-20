@@ -3,11 +3,19 @@ import type { ApiEnvelope } from "../type/commonType";
 import { showSessionExpiredNotification } from "../utils/showSessionExpiredNotification";
 import type { CreateProjectRequest, ProjectResponse } from "../projectManagementTypes/projectType";
 import type { CreateOrUpdateSubTaskRequest, CreateTaskRequest, TaskResponse } from "../projectManagementTypes/taskType";
-import type { CategoryResponse } from "../type/categoryType";
 import type { ProjectCategoryCreateOrUpdateRequest, ProjectCategoryResponse } from "../projectManagementTypes/projectCategoryType";
 import type { CommentResponse, CreateCommentRequest } from "../projectManagementTypes/projectCommentsType";
 import type { ProjectActivityLog } from "../projectManagementTypes/projectActivityLogType";
 import type { ProjectOverviewDashboardResponse } from "../projectManagementTypes/projectDashboardType";
+import {
+    useMockData,
+    mockProjectService,
+    mockTaskService,
+    mockCategoryService,
+    mockCommentService,
+    mockActivityLogService,
+    mockDashboardService,
+} from "./mockProjectManagementService";
 
 const API_BASE = (window as any)._env_?.API_BASE;
 const api = axios.create({
@@ -81,26 +89,31 @@ function unwrapApiEnvelope<T>(response: { data: ApiEnvelope<T> }): T {
 
 export const projectManagementService = {
     createProject: async (request: CreateProjectRequest): Promise<ProjectResponse> => {
+        if (useMockData()) return mockProjectService.createProject(request);
         const response = await api.post('/api/ProjectManagement/create', request);
         return unwrapApiEnvelope(response);
     },
 
     updateProject: async (id: number, request: CreateProjectRequest): Promise<ProjectResponse> => {
+        if (useMockData()) return mockProjectService.updateProject(id, request);
         const response = await api.post(`/api/ProjectManagement/update/${id}`, request);
         return unwrapApiEnvelope(response);
     },
 
     deleteProject: async (id: number): Promise<void> => {
+        if (useMockData()) return mockProjectService.deleteProject(id);
         const response = await api.post(`/api/ProjectManagement/delete/${id}`);
         return unwrapApiEnvelope(response);
     },
 
     getProjectById: async (id: number): Promise<ProjectResponse> => {
+        if (useMockData()) return mockProjectService.getProjectById(id);
         const response = await api.get(`/api/ProjectManagement/${id}`);
         return unwrapApiEnvelope(response);
     },
 
     getAllProjects: async (): Promise<ProjectResponse[]> => {
+        if (useMockData()) return mockProjectService.getAllProjects();
         const response = await api.get(`/api/ProjectManagement/all`);
         return unwrapApiEnvelope(response);
     }
@@ -108,41 +121,49 @@ export const projectManagementService = {
 
 export const taskManagementService = {
     createTask: async (request: CreateTaskRequest): Promise<TaskResponse> => {
+        if (useMockData()) return mockTaskService.createTask(request);
         const response = await api.post('/api/TaskManagement/create', request);
         return unwrapApiEnvelope(response);
     },
 
     updateTask: async (id: number, request: CreateTaskRequest): Promise<TaskResponse> => {
+        if (useMockData()) return mockTaskService.updateTask(id, request);
         const response = await api.post(`/api/TaskManagement/update/${id}`, request);
         return unwrapApiEnvelope(response);
     },
 
     deleteTask: async (id: number): Promise<void> => {
+        if (useMockData()) return mockTaskService.deleteTask(id);
         const response = await api.post(`/api/TaskManagement/delete/${id}`);
         return unwrapApiEnvelope(response);
     },
 
     getTaskById: async (id: number): Promise<TaskResponse> => {
+        if (useMockData()) return mockTaskService.getTaskById(id);
         const response = await api.get(`/api/TaskManagement/${id}`);
         return unwrapApiEnvelope(response);
     },
 
     getAllTasks: async (): Promise<TaskResponse[]> => {
+        if (useMockData()) return mockTaskService.getAllTasks();
         const response = await api.get(`/api/TaskManagement/all`);
         return unwrapApiEnvelope(response);
     },
 
     getAllTasksOfProject: async (projectId: number): Promise<TaskResponse[]> => {
+        if (useMockData()) return mockTaskService.getAllTasksOfProject(projectId);
         const response = await api.get(`/api/TaskManagement/project/${projectId}`);
         return unwrapApiEnvelope(response);
     },
 
     createOrUpdateSubTask: async (request: CreateOrUpdateSubTaskRequest): Promise<TaskResponse> => {
+        if (useMockData()) return mockTaskService.createOrUpdateSubTask(request);
         const response = await api.post('/api/TaskManagement/subtask', request);
         return unwrapApiEnvelope(response);
     },
 
     deleteSubTask: async (id: number): Promise<void> => {
+        if (useMockData()) return mockTaskService.deleteSubTask(id);
         const response = await api.post(`/api/TaskManagement/subtask/delete/${id}`);
         return unwrapApiEnvelope(response);
     }
@@ -150,26 +171,31 @@ export const taskManagementService = {
 
 export const projectCategoryService = {
     createCategory: async (request: ProjectCategoryCreateOrUpdateRequest): Promise<ProjectCategoryResponse> => {
+        if (useMockData()) return mockCategoryService.createCategory(request);
         const response = await api.post('/api/ProjectCategory/create', request);
         return unwrapApiEnvelope(response);
     },
 
     updateCategory: async (id: number, request: ProjectCategoryCreateOrUpdateRequest): Promise<ProjectCategoryResponse> => {
+        if (useMockData()) return mockCategoryService.updateCategory(id, request);
         const response = await api.post(`/api/ProjectCategory/update/${id}`, request);
         return unwrapApiEnvelope(response);
     },
 
     deleteCategory: async (id: number): Promise<void> => {
+        if (useMockData()) return mockCategoryService.deleteCategory(id);
         const response = await api.post(`/api/ProjectCategory/delete/${id}`);
         return unwrapApiEnvelope(response);
     },
 
     getCategoryById: async (id: number): Promise<ProjectCategoryResponse> => {
+        if (useMockData()) return mockCategoryService.getCategoryById(id);
         const response = await api.get(`/api/ProjectCategory/${id}`);
         return unwrapApiEnvelope(response);
     },
 
     getAllCategories: async (): Promise<ProjectCategoryResponse[]> => {
+        if (useMockData()) return mockCategoryService.getAllCategories();
         const response = await api.get(`/api/ProjectCategory/all`);
         return unwrapApiEnvelope(response);
     }
@@ -177,36 +203,43 @@ export const projectCategoryService = {
 
 export const commentService = {
     createComment: async (request: CreateCommentRequest): Promise<CommentResponse> => {
+        if (useMockData()) return mockCommentService.createComment(request);
         const response = await api.post('/api/ProjectComment/create', request);
         return unwrapApiEnvelope(response);
     },
 
     updateComment: async (id: number, request: CreateCommentRequest): Promise<CommentResponse> => {
+        if (useMockData()) return mockCommentService.updateComment(id, request);
         const response = await api.post(`/api/ProjectComment/update/${id}`, request);
         return unwrapApiEnvelope(response);
     },
 
     deleteComment: async (id: number): Promise<void> => {
+        if (useMockData()) return mockCommentService.deleteComment(id);
         const response = await api.post(`/api/ProjectComment/delete/${id}`);
         return unwrapApiEnvelope(response);
     },
 
     getCommentById: async (id: number): Promise<CommentResponse> => {
+        if (useMockData()) return mockCommentService.getCommentById(id);
         const response = await api.get(`/api/ProjectComment/${id}`);
         return unwrapApiEnvelope(response);
     },
 
     getAllComments: async (): Promise<CommentResponse[]> => {
+        if (useMockData()) return mockCommentService.getAllComments();
         const response = await api.get(`/api/ProjectComment/all`);
         return unwrapApiEnvelope(response);
     },
 
     getAllCommentsOfTask: async (taskId: number): Promise<CommentResponse[]> => {
+        if (useMockData()) return mockCommentService.getAllCommentsOfTask(taskId);
         const response = await api.get(`/api/ProjectComment/task/${taskId}`);
         return unwrapApiEnvelope(response);
     },
 
     getAllCommentsOfProject: async (projectId: number): Promise<CommentResponse[]> => {
+        if (useMockData()) return mockCommentService.getAllCommentsOfProject(projectId);
         const response = await api.get(`/api/ProjectComment/project/${projectId}`);
         return unwrapApiEnvelope(response);
     }
@@ -214,16 +247,19 @@ export const commentService = {
 
 export const projectActivityLogService = {
     getAllLogs: async (): Promise<ProjectActivityLog[]> => {
+        if (useMockData()) return mockActivityLogService.getAllLogs();
         const response = await api.get(`/api/ProjectActivityLog/all`);
         return unwrapApiEnvelope(response);
     },
 
     getAllLogsOfProject: async (projectId: number): Promise<ProjectActivityLog[]> => {
+        if (useMockData()) return mockActivityLogService.getAllLogsOfProject(projectId);
         const response = await api.get(`/api/ProjectActivityLog/project/${projectId}`);
         return unwrapApiEnvelope(response);
     },
 
     getAllLogsOfTask: async (taskId: number): Promise<ProjectActivityLog[]> => {
+        if (useMockData()) return mockActivityLogService.getAllLogsOfTask(taskId);
         const response = await api.get(`/api/ProjectActivityLog/task/${taskId}`);
         return unwrapApiEnvelope(response);
     }
@@ -231,6 +267,7 @@ export const projectActivityLogService = {
 
 export const projectDashboardService = {
     getProjectOverview: async (): Promise<ProjectOverviewDashboardResponse> => {
+        if (useMockData()) return mockDashboardService.getProjectOverview();
         const response = await api.get(`/api/ProjectDashboard/overview`);
         return unwrapApiEnvelope(response);
     }

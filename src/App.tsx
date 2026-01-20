@@ -23,6 +23,9 @@ import AdminPackagesPage from './pages/AdminPackagesPage'
 import AdminReportByApplicationPage from './pages/AdminReportByApplicationPage'
 import AdminIconsPage from './pages/AdminIconsPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
+import AdminProjectDashboardPage from './projectManagementPages/AdminProjectDashboardPage'
+import AdminProjectsPage from './projectManagementPages/AdminProjectsPage'
+import MockDataIndicator from './components/MockDataIndicator'
 
 function AppContent() {
   const networkStatus = useNetworkStatus();
@@ -32,6 +35,9 @@ function AppContent() {
 
   return (
     <>
+      {/* Mock Data Indicator */}
+      <MockDataIndicator />
+      
       {/* Network Alert */}
       <NetworkAlert {...networkStatus} />
 
@@ -53,7 +59,19 @@ function AppContent() {
               fallbackPath="/admin-dashboard"
               showAccessDenied={true}
             >
-              <AdminDashboard />
+              <AdminProjectDashboardPage />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin-projects" element={
+          <ProtectedRoute>
+            <RoleBasedRoute
+              requiredPermission={Permission.VIEW_ADMIN_DASHBOARD}
+              fallbackPath="/admin-projects"
+              showAccessDenied={true}
+            >
+              <AdminProjectsPage />
             </RoleBasedRoute>
           </ProtectedRoute>
         } />
