@@ -9,6 +9,8 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
+    Divider,
+    Typography,
 } from '@mui/material';
 import {
     Dashboard as DashboardIcon,
@@ -34,6 +36,7 @@ import {
 import { Permission } from '../../constants/roles';
 import { usePermission } from '../../hooks/usePermission';
 import type { NavItem } from '../../type/commonType';
+import { ThemeToggleButton } from '../ThemeToggleButton';
 
 const navItems: NavItem[] = [
     {
@@ -163,57 +166,70 @@ export function MobileNav({ onClose, open }: MobileNavProps): React.JSX.Element 
             open={open}
             PaperProps={{
                 sx: {
-                    bgcolor: 'rgb(64, 75, 128)',
+                    background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
                     color: 'var(--mui-palette-common-white)',
-                    width: '320px',
+                    width: '300px',
+                    display: 'flex',
+                    flexDirection: 'column',
                 },
             }}
             sx={{ display: { lg: 'none' } }}
         >
-            <Stack spacing={2} sx={{ p: 1 }}>
-                <Box sx={{ display: 'inline-center', justifyContent: 'center', alignItems: 'center' }}>
-                    <Box sx={{ display: 'inline-center', justifyContent: 'center', alignItems: 'center' }}>
-                        <img src="/images/TheGrandHoTram.png" alt="Logo" style={{ height: 10, width: 'auto' }} />
-                    </Box>
+            {/* Logo Section */}
+            <Stack spacing={1} sx={{ p: 3, pb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }}>
+                    <img src="/images/TheGrandHoTram.png" alt="Logo" style={{ height: 70, width: 'auto' }} />
                 </Box>
+                <Typography
+                    variant="h6"
+                    sx={{
+                        textAlign: 'center',
+                        fontWeight: 700,
+                        fontSize: '1.1rem',
+                        letterSpacing: 0.5,
+                        color: 'white',
+                        textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    }}
+                >
+                    Project Management
+                </Typography>
             </Stack>
 
-            <Stack spacing={1} sx={{ p: 1 }}>
-                <Box sx={{ display: 'inline-center', justifyContent: 'center', alignItems: 'center' }}>
-                    <Box sx={{ display: 'inline-center', justifyContent: 'center', alignItems: 'center', color: 'white', fontSize: 18, fontWeight: 'bold' }}>
-                        Project Management
-                    </Box>
-                </Box>
-            </Stack>
+            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.15)', mx: 2 }} />
 
+            {/* Navigation Items */}
             <Box
                 sx={{
-                    borderTop: '1px solid rgba(255, 255, 255, 0.1)',
                     flex: '1 1 auto',
-                    overflow: 'auto'
+                    overflow: 'auto',
+                    py: 2,
                 }}
             >
-                <List sx={{ p: 1 }}>
+                <List sx={{ px: 2 }}>
                     {filteredNavItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = location.pathname === item.href;
 
                         return (
-                            <ListItem key={item.key} disablePadding sx={{ mb: 0.5 }}>
+                            <ListItem key={item.key} disablePadding sx={{ mb: 1 }}>
                                 <ListItemButton
                                     component={RouterLink}
                                     to={item.href}
                                     onClick={onClose}
                                     sx={{
-                                        borderRadius: 1,
-                                        color: isActive ? 'white' : 'rgba(255, 255, 255, 0.7)',
-                                        backgroundColor: isActive ? 'var(--mui-palette-primary-main)' : 'transparent',
+                                        borderRadius: 2,
+                                        color: isActive ? 'white' : 'rgba(255, 255, 255, 0.85)',
+                                        backgroundColor: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                                        backdropFilter: isActive ? 'blur(10px)' : 'none',
+                                        boxShadow: isActive ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
+                                        transition: 'all 0.2s ease',
                                         '&:hover': {
                                             backgroundColor: isActive
-                                                ? 'var(--mui-palette-primary-dark)'
-                                                : 'rgba(255, 255, 255, 0.04)',
+                                                ? 'rgba(255, 255, 255, 0.2)'
+                                                : 'rgba(255, 255, 255, 0.08)',
+                                            transform: 'translateX(4px)',
                                         },
-                                        py: 1,
+                                        py: 1.2,
                                         px: 2,
                                     }}
                                 >
@@ -228,8 +244,8 @@ export function MobileNav({ onClose, open }: MobileNavProps): React.JSX.Element 
                                     <ListItemText
                                         primary={item.title}
                                         primaryTypographyProps={{
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500,
+                                            fontSize: '0.9rem',
+                                            fontWeight: isActive ? 600 : 500,
                                         }}
                                     />
                                 </ListItemButton>
@@ -237,6 +253,14 @@ export function MobileNav({ onClose, open }: MobileNavProps): React.JSX.Element 
                         );
                     })}
                 </List>
+            </Box>
+
+            {/* Theme Toggle at Bottom */}
+            <Box sx={{ p: 2, mt: 'auto' }}>
+                <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.15)', mb: 2 }} />
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <ThemeToggleButton />
+                </Box>
             </Box>
         </Drawer>
     );

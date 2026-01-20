@@ -117,84 +117,108 @@ const Login: React.FC = () => {
             sx={{
                 position: "fixed",
                 inset: 0,
-                bgcolor: "linear-gradient(135deg, #e3f0ff 0%, #f9f9f9 100%)",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 overflow: "hidden",
                 minHeight: "100vh",
                 minWidth: "100vw",
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    width: '500px',
+                    height: '500px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '50%',
+                    top: '-200px',
+                    right: '-200px',
+                },
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    width: '400px',
+                    height: '400px',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    borderRadius: '50%',
+                    bottom: '-150px',
+                    left: '-150px',
+                },
             }}
         >
-            <Container maxWidth="sm" sx={{ px: { xs: 1, sm: 2 } }}>
+            <Container maxWidth="sm" sx={{ px: { xs: 1, sm: 2 }, position: 'relative', zIndex: 1 }}>
                 <Card
                     sx={{
-                        borderRadius: 4,
-                        boxShadow: 6,
-                        px: { xs: 2, sm: 4 },
-                        py: 4,
+                        borderRadius: 3,
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                        px: { xs: 3, sm: 5 },
+                        py: 5,
                         bgcolor: "background.paper",
                         width: "100%",
-                        maxWidth: 480,
-                        transition: 'opacity 0.2s ease-in-out',
-                        opacity: loading ? 0.9 : 1,
+                        maxWidth: 500,
+                        transition: 'all 0.3s ease-in-out',
+                        opacity: loading ? 0.95 : 1,
+                        transform: loading ? 'scale(0.98)' : 'scale(1)',
+                        backdropFilter: 'blur(10px)',
                     }}
                 >
-                    <Typography
-                        variant="h5"
+                    {/* Logo/Icon */}
+                    <Box
                         sx={{
-                            fontWeight: 700,
-                            letterSpacing: 1,
-                            color: "primary.main",
-                            mt: 1,
-                            alignContent: 'center',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            mb: 3,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                width: 80,
+                                height: 80,
+                                borderRadius: '20px',
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                                transform: 'rotate(-5deg)',
+                                transition: 'transform 0.3s ease',
+                                '&:hover': {
+                                    transform: 'rotate(0deg) scale(1.05)',
+                                },
+                            }}
+                        >
+                            <LockOutlinedIcon sx={{ color: "white", fontSize: 40 }} />
+                        </Box>
+                    </Box>
+
+                    {/* Title */}
+                    <Typography
+                        variant="h4"
+                        sx={{
+                            fontWeight: 800,
                             textAlign: 'center',
-                            mb: 2,
+                            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                            backgroundClip: 'text',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            mb: 1,
                         }}
                     >
                         Project Management
                     </Typography>
-                    <CardHeader
-                        // avatar={
-                        //     <Box
-                        //         sx={{
-                        //             bgcolor: "primary.main",
-                        //             width: 56,
-                        //             height: 56,
-                        //             borderRadius: "50%",
-                        //             display: "flex",
-                        //             alignItems: "center",
-                        //             justifyContent: "center",
-                        //             boxShadow: 2,
-                        //             mb: 1,
-                        //         }}
-                        //     >
-                        //         <LockOutlinedIcon sx={{ color: "white", fontSize: 32 }} />
-                        //     </Box>
-                        // }
-
-                        title={
-                            <Typography
-                                variant="h5"
-                                sx={{
-                                    fontWeight: 800,
-                                    letterSpacing: 1,
-                                    color: "primary.main",
-                                    mt: 1,
-                                }}
-                            >
-
-                            </Typography>
-                        }
-                        subheader={
-                            <Typography variant="h6" color="text.secondary">
-                                Welcome back! <br />Please Sign in to continue
-                            </Typography>
-                        }
-                        sx={{ textAlign: "center", pb: 0 }}
-                    />
-                    <CardContent>
-                        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }} noValidate>
+                    
+                    <Typography 
+                        variant="body1" 
+                        color="text.secondary"
+                        sx={{
+                            textAlign: 'center',
+                            mb: 4,
+                            fontWeight: 500,
+                        }}
+                    >
+                        Welcome back! Please sign in to continue
+                    </Typography>
+                    <Box component="form" onSubmit={handleSubmit} noValidate>
                             <TextField
                                 required
                                 fullWidth
@@ -282,31 +306,45 @@ const Login: React.FC = () => {
                             <Button
                                 type="submit"
                                 variant="contained"
-                                color="primary"
                                 fullWidth
                                 size="large"
                                 disabled={loading || !username.trim() || !password.trim()}
                                 sx={{
-                                    mt: 3,
-                                    mb: 2,
-                                    py: 1.5,
-                                    fontWeight: 600,
-                                    fontSize: "1rem",
-                                    letterSpacing: 1,
-                                    boxShadow: 3,
+                                    mt: 4,
+                                    mb: 1,
+                                    py: 1.8,
+                                    fontWeight: 700,
+                                    fontSize: "1.05rem",
+                                    letterSpacing: 1.2,
+                                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                                    borderRadius: 2,
+                                    textTransform: 'uppercase',
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        background: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
+                                        boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
+                                        transform: 'translateY(-2px)',
+                                    },
+                                    '&:active': {
+                                        transform: 'translateY(0)',
+                                    },
+                                    '&:disabled': {
+                                        background: 'rgba(0, 0, 0, 0.12)',
+                                        boxShadow: 'none',
+                                    },
                                 }}
                             >
                                 {loading ? (
                                     <>
-                                        <CircularProgress size={20} sx={{ mr: 1 }} />
+                                        <CircularProgress size={22} sx={{ mr: 1.5, color: 'white' }} />
                                         Signing in...
                                     </>
                                 ) : (
-                                    "Sign in"
+                                    "Sign In"
                                 )}
                             </Button>
                         </Box>
-                    </CardContent>
                 </Card>
             </Container>
         </Box>
