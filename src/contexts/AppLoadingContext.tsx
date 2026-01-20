@@ -116,7 +116,7 @@ export const AppLoadingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 sx={{
                     position: 'fixed',
                     inset: 0,
-                    bgcolor: '#f8fafc',
+                    bgcolor: 'background.default',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -130,7 +130,7 @@ export const AppLoadingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                         maxWidth: 400,
                         width: '90%',
                         p: 4,
-                        bgcolor: 'white',
+                        bgcolor: 'background.paper',
                         borderRadius: 2,
                         boxShadow: 3,
                     }}

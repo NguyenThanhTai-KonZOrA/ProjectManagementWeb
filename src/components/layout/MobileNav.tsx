@@ -11,6 +11,7 @@ import {
     ListItemText,
     Divider,
     Typography,
+    useTheme,
 } from '@mui/material';
 import {
     Dashboard as DashboardIcon,
@@ -146,8 +147,9 @@ interface MobileNavProps {
 
 export function MobileNav({ onClose, open }: MobileNavProps): React.JSX.Element {
     const location = useLocation();
-    // ← Added hook usePermission
     const { can } = usePermission();
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
 
     // Filter nav items base on permissions
     const filteredNavItems = navItems.filter((item) => {
@@ -166,11 +168,14 @@ export function MobileNav({ onClose, open }: MobileNavProps): React.JSX.Element 
             open={open}
             PaperProps={{
                 sx: {
-                    background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
+                    background: isDarkMode
+                        ? 'linear-gradient(180deg, #1a1f3a 0%, #0f1419 100%)'
+                        : 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
                     color: 'var(--mui-palette-common-white)',
                     width: '300px',
                     display: 'flex',
                     flexDirection: 'column',
+                    borderRight: isDarkMode ? '1px solid rgba(139, 154, 247, 0.1)' : 'none',
                 },
             }}
             sx={{ display: { lg: 'none' } }}

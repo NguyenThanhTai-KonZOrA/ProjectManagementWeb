@@ -10,6 +10,7 @@ import {
     ListItemText,
     Divider,
     Typography,
+    useTheme,
 } from '@mui/material';
 import {
     Dashboard as DashboardIcon,
@@ -142,7 +143,9 @@ const navItems: NavItem[] = [
 export function SideNav(): React.JSX.Element {
     const location = useLocation();
     const { isCollapsed } = useSidebar();
-    const { can } = usePermission(); // ← Thêm hook usePermission
+    const { can } = usePermission();
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
 
     // Filter nav items base on permissions
     const filteredNavItems = navItems.filter((item) => {
@@ -157,7 +160,9 @@ export function SideNav(): React.JSX.Element {
     return (
         <Box
             sx={{
-                background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
+                background: isDarkMode
+                    ? 'linear-gradient(180deg, #1a1f3a 0%, #0f1419 100%)'
+                    : 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
                 color: 'var(--mui-palette-common-white)',
                 display: { xs: 'none', lg: 'flex' },
                 flexDirection: 'column',
@@ -169,8 +174,11 @@ export function SideNav(): React.JSX.Element {
                 width: '280px',
                 zIndex: 1100,
                 transform: isCollapsed ? 'translateX(-100%)' : 'translateX(0)',
-                transition: 'transform 0.3s ease',
-                boxShadow: '4px 0 24px rgba(0, 0, 0, 0.12)',
+                transition: 'all 0.3s ease',
+                boxShadow: isDarkMode
+                    ? '4px 0 24px rgba(0, 0, 0, 0.5)'
+                    : '4px 0 24px rgba(0, 0, 0, 0.12)',
+                borderRight: isDarkMode ? '1px solid rgba(139, 154, 247, 0.1)' : 'none',
             }}
         >
             {/* Logo Section */}

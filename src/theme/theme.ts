@@ -59,15 +59,15 @@ export const lightTheme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: 'rgb(64, 75, 128)',
+      main: '#667eea',
       dark: '#5568d3',
       light: '#8b9af7',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#0d93c9',
-      dark: '#076b92',
-      light: '#4fb3d4',
+      main: '#764ba2',
+      dark: '#5a3a7a',
+      light: '#9d6ec9',
       contrastText: '#ffffff',
     },
     background: {
@@ -92,18 +92,89 @@ export const darkTheme = createTheme({
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#4fb3d4',
-      dark: '#0d93c9',
-      light: '#7cc4df',
-      contrastText: '#000000',
+      main: '#9d6ec9',
+      dark: '#764ba2',
+      light: '#b98dd4',
+      contrastText: '#ffffff',
     },
     background: {
-      default: '#0f172a',
-      paper: '#1e293b',
+      default: '#0d1117',
+      paper: '#161b22',
     },
     text: {
-      primary: '#f1f5f9',
+      primary: '#e2e8f0',
       secondary: '#94a3b8',
+    },
+  },
+  components: {
+    ...baseTheme.components,
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+          background: 'linear-gradient(135deg, rgba(22, 27, 34, 0.95) 0%, rgba(13, 17, 23, 0.95) 100%)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(139, 154, 247, 0.1)',
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          boxShadow: 'none',
+          borderBottom: '1px solid rgba(139, 154, 247, 0.1)',
+          background: 'rgba(22, 27, 34, 0.8)',
+          backdropFilter: 'blur(20px)',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+        contained: {
+          boxShadow: '0 4px 12px rgba(139, 154, 247, 0.3)',
+          '&:hover': {
+            boxShadow: '0 6px 16px rgba(139, 154, 247, 0.4)',
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+          backgroundColor: '#161b22',
+        },
+      },
+    },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#161b22',
+        },
+      },
+    },
+    MuiTable: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'transparent',
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderBottom: '1px solid rgba(139, 154, 247, 0.1)',
+        },
+        head: {
+          backgroundColor: 'rgba(22, 27, 34, 0.8)',
+          fontWeight: 600,
+        },
+      },
     },
   },
 });

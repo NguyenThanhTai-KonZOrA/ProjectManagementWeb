@@ -61,7 +61,7 @@ export function MainNav(): React.JSX.Element {
             <AppBar
                 position="sticky"
                 sx={{
-                    backgroundColor: '#fafafa',
+                    backgroundColor: 'background.default',
                     borderBottom: '1px solid var(--mui-palette-divider)',
                     boxShadow: 'none',
                     color: 'var(--mui-palette-text-primary)',
@@ -112,7 +112,7 @@ export function MainNav(): React.JSX.Element {
                                 sx={{
                                     flexGrow: 1,
                                     textAlign: 'center',
-                                    color: 'rgb(64, 75, 128)',
+                                    color: 'var(--mui-palette-text-primary)',
                                     fontWeight: 700,
                                     fontSize: '1.5rem'
                                 }}
