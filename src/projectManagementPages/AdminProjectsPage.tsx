@@ -266,13 +266,12 @@ export default function AdminProjectsPage() {
 
     return (
         <AdminLayout>
-            {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 0, zIndex: 1300 }} />}
 
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={6000}
                 onClose={() => setSnackbar({ ...snackbar, open: false })}
-                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             >
                 <Alert
                     onClose={() => setSnackbar({ ...snackbar, open: false })}
@@ -285,8 +284,10 @@ export default function AdminProjectsPage() {
 
             <Box sx={{ p: 3 }}>
                 {/* Header */}
+                {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 0, zIndex: 20 }} />}
+
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                    <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                    <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
                         {/* Status Filter */}
                         <ToggleButtonGroup
                             value={statusFilter}
@@ -364,7 +365,7 @@ export default function AdminProjectsPage() {
                                             <CategoryIcon />
                                         </Avatar>
                                         <Box sx={{ flex: 1 }}>
-                                            <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5 }}>
+                                            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 0.5 }}>
                                                 {project.projectName}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary">
@@ -473,6 +474,20 @@ export default function AdminProjectsPage() {
                                         />
                                     </Box>
 
+                                    {/* Team Members */}
+                                    <Box sx={{ mb: 1 }}>
+                                        <AvatarGroup max={10} sx={{ justifyContent: "flex-start" }}>
+                                            {project.projectMembers.map((member, index) => (
+                                                <Tooltip key={index} title={member.memberName}>
+                                                    <Avatar
+                                                        src={member.memberImage}
+                                                        alt={member.memberName}
+                                                        sx={{ width: 25, height: 25 }}
+                                                    />
+                                                </Tooltip>
+                                            ))}
+                                        </AvatarGroup>
+                                    </Box>
                                     {/* Days Left Indicator */}
                                     {status !== "Completed" && (
                                         <Box
@@ -520,20 +535,7 @@ export default function AdminProjectsPage() {
                                         </Box>
                                     )}
 
-                                    {/* Team Members */}
-                                    <Box sx={{ mb: 2 }}>
-                                        <AvatarGroup max={4} sx={{ justifyContent: "flex-start" }}>
-                                            {project.projectMembers.map((member, index) => (
-                                                <Tooltip key={index} title={member.memberName}>
-                                                    <Avatar
-                                                        src={member.memberImage}
-                                                        alt={member.memberName}
-                                                        sx={{ width: 25, height: 25 }}
-                                                    />
-                                                </Tooltip>
-                                            ))}
-                                        </AvatarGroup>
-                                    </Box>
+
 
                                     {/* Action Buttons */}
                                     {/* <Box sx={{ display: "flex", gap: 1 }}>

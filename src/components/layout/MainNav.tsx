@@ -87,7 +87,7 @@ export function MainNav(): React.JSX.Element {
                             <Tooltip title={isCollapsed ? "Show Sidebar" : "Hide Sidebar"}>
                                 <IconButton
                                     onClick={toggleSidebar}
-                                    sx={{ 
+                                    sx={{
                                         display: { xs: 'none', lg: 'inline-flex' },
                                         color: 'inherit',
                                         '&:hover': {
@@ -98,7 +98,7 @@ export function MainNav(): React.JSX.Element {
                                     {isCollapsed ? <MenuIcon /> : <MenuOpenIcon />}
                                 </IconButton>
                             </Tooltip>
-                            
+
                             {/* Mobile Menu Button */}
                             <IconButton
                                 onClick={() => setOpenNav(true)}
@@ -106,13 +106,13 @@ export function MainNav(): React.JSX.Element {
                             >
                                 <MenuIcon />
                             </IconButton>
-                            
+
                             <Typography
                                 variant="h5"
                                 sx={{
                                     flexGrow: 1,
                                     textAlign: 'center',
-                                    color: '#274549',
+                                    color: 'rgb(64, 75, 128)',
                                     fontWeight: 700,
                                     fontSize: '1.5rem'
                                 }}
@@ -129,7 +129,7 @@ export function MainNav(): React.JSX.Element {
                                         cursor: 'pointer',
                                         width: 40,
                                         height: 40,
-                                        bgcolor: '#274549'
+                                        bgcolor: '#667eea'
                                     }}
                                 >
                                     Hi!

@@ -147,7 +147,7 @@ export function SideNav(): React.JSX.Element {
     return (
         <Box
             sx={{
-                bgcolor: '#274549',
+                bgcolor: 'rgb(64, 75, 128)',
                 color: 'var(--mui-palette-common-white)',
                 display: { xs: 'none', lg: 'flex' },
                 flexDirection: 'column',

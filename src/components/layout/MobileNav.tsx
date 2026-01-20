@@ -156,7 +156,7 @@ export function MobileNav({ onClose, open }: MobileNavProps): React.JSX.Element 
             open={open}
             PaperProps={{
                 sx: {
-                    bgcolor: '#274549',
+                    bgcolor: 'rgb(64, 75, 128)',
                     color: 'var(--mui-palette-common-white)',
                     width: '320px',
                 },
@@ -166,7 +166,7 @@ export function MobileNav({ onClose, open }: MobileNavProps): React.JSX.Element 
             <Stack spacing={2} sx={{ p: 1 }}>
                 <Box sx={{ display: 'inline-center', justifyContent: 'center', alignItems: 'center' }}>
                     <Box sx={{ display: 'inline-center', justifyContent: 'center', alignItems: 'center' }}>
-                        <img src="/images/TheGrandHoTram.png" alt="Logo" style={{ height: 90, width: 'auto' }} />
+                        <img src="/images/TheGrandHoTram.png" alt="Logo" style={{ height: 10, width: 'auto' }} />
                     </Box>
                 </Box>
             </Stack>
