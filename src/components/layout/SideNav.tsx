@@ -43,83 +43,83 @@ const navItems: NavItem[] = [
         icon: DashboardIcon,
         requiredPermission: Permission.VIEW_ADMIN_DASHBOARD
     },
-    {
-        key: 'application',
-        title: 'Application Management',
-        href: '/admin-application',
-        icon: AppIcon,
-        requiredPermission: Permission.VIEW_APPLICATION_MANAGEMENT
-    },
-    {
-        key: 'category',
-        title: 'Category Management',
-        href: '/admin-category',
-        icon: CategoryIcon,
-        requiredPermission: Permission.VIEW_CATEGORY_MANAGEMENT
-    },
-    {
-        key: 'package',
-        title: 'Packages Management',
-        href: '/admin-package',
-        icon: FileDownloadDoneIcon,
-        requiredPermission: Permission.VIEW_PACKAGE_MANAGEMENT
-    },
-    {
-        key: 'icons',
-        title: 'Icons Management',
-        href: '/admin-icons',
-        icon: Filter9PlusIcon,
-        requiredPermission: Permission.VIEW_ICON_MANAGEMENT
-    },
-    {
-        key: 'installation',
-        title: 'Installation Logs',
-        href: '/admin-installation',
-        icon: ManageHistoryIcon,
-        requiredPermission: Permission.VIEW_INSTALLATION_LOGS
-    },
-    {
-        key: 'report-by-application',
-        title: 'Installation Report',
-        href: '/admin-report-by-application',
-        icon: AssessmentIcon,
-        requiredPermission: Permission.VIEW_INSTALLATION_REPORTS
-    },
-    {
-        key: 'admin-audit-logs',
-        title: 'Audit Logs',
-        href: '/admin-audit-logs',
-        icon: ManageHistoryIcon,
-        requiredPermission: Permission.VIEW_AUDIT_LOGS,
-    },
-    {
-        key: 'admin-roles',
-        title: 'Role Management',
-        href: '/admin-roles',
-        icon: RoleManagementIcon,
-        requiredPermission: Permission.VIEW_ROLE_MANAGEMENT
-    },
-    {
-        key: 'admin-permissions',
-        title: 'Permission Management',
-        href: '/admin-permissions',
-        icon: PermissionManagementIcon,
-        requiredPermission: Permission.VIEW_PERMISSION_MANAGEMENT
-    },
-    {
-        key: 'admin-employees',
-        title: 'Employee Management',
-        href: '/admin-employees',
-        icon: PeopleIcon,
-        requiredPermission: Permission.VIEW_EMPLOYEE_MANAGEMENT
-    },
-    {
-        key: 'admin-settings',
-        title: 'System Settings',
-        href: '/admin-settings',
-        icon: SettingsIcon,
-        requiredPermission: Permission.VIEW_SYSTEM_SETTINGS
-    },
+    // {
+    //     key: 'application',
+    //     title: 'Application Management',
+    //     href: '/admin-application',
+    //     icon: AppIcon,
+    //     requiredPermission: Permission.VIEW_APPLICATION_MANAGEMENT
+    // },
+    // {
+    //     key: 'category',
+    //     title: 'Category Management',
+    //     href: '/admin-category',
+    //     icon: CategoryIcon,
+    //     requiredPermission: Permission.VIEW_CATEGORY_MANAGEMENT
+    // },
+    // {
+    //     key: 'package',
+    //     title: 'Packages Management',
+    //     href: '/admin-package',
+    //     icon: FileDownloadDoneIcon,
+    //     requiredPermission: Permission.VIEW_PACKAGE_MANAGEMENT
+    // },
+    // {
+    //     key: 'icons',
+    //     title: 'Icons Management',
+    //     href: '/admin-icons',
+    //     icon: Filter9PlusIcon,
+    //     requiredPermission: Permission.VIEW_ICON_MANAGEMENT
+    // },
+    // {
+    //     key: 'installation',
+    //     title: 'Installation Logs',
+    //     href: '/admin-installation',
+    //     icon: ManageHistoryIcon,
+    //     requiredPermission: Permission.VIEW_INSTALLATION_LOGS
+    // },
+    // {
+    //     key: 'report-by-application',
+    //     title: 'Installation Report',
+    //     href: '/admin-report-by-application',
+    //     icon: AssessmentIcon,
+    //     requiredPermission: Permission.VIEW_INSTALLATION_REPORTS
+    // },
+    // {
+    //     key: 'admin-audit-logs',
+    //     title: 'Audit Logs',
+    //     href: '/admin-audit-logs',
+    //     icon: ManageHistoryIcon,
+    //     requiredPermission: Permission.VIEW_AUDIT_LOGS,
+    // },
+    // {
+    //     key: 'admin-roles',
+    //     title: 'Role Management',
+    //     href: '/admin-roles',
+    //     icon: RoleManagementIcon,
+    //     requiredPermission: Permission.VIEW_ROLE_MANAGEMENT
+    // },
+    // {
+    //     key: 'admin-permissions',
+    //     title: 'Permission Management',
+    //     href: '/admin-permissions',
+    //     icon: PermissionManagementIcon,
+    //     requiredPermission: Permission.VIEW_PERMISSION_MANAGEMENT
+    // },
+    // {
+    //     key: 'admin-employees',
+    //     title: 'Employee Management',
+    //     href: '/admin-employees',
+    //     icon: PeopleIcon,
+    //     requiredPermission: Permission.VIEW_EMPLOYEE_MANAGEMENT
+    // },
+    // {
+    //     key: 'admin-settings',
+    //     title: 'System Settings',
+    //     href: '/admin-settings',
+    //     icon: SettingsIcon,
+    //     requiredPermission: Permission.VIEW_SYSTEM_SETTINGS
+    // },
 ];
 
 export function SideNav(): React.JSX.Element {
