@@ -166,6 +166,18 @@ export const taskManagementService = {
         if (useMockData()) return mockTaskService.deleteSubTask(id);
         const response = await api.post(`/api/TaskManagement/subtask/delete/${id}`);
         return unwrapApiEnvelope(response);
+    },
+
+    approveTask: async (taskId: number, reason: string = ""): Promise<void> => {
+        if (useMockData()) return mockTaskService.approveTask(taskId, reason);
+        const response = await api.post('/api/TaskManagement/approve', { taskId, actionType: "Approve", reason });
+        return unwrapApiEnvelope(response);
+    },
+
+    rejectTask: async (taskId: number, reason: string = ""): Promise<void> => {
+        if (useMockData()) return mockTaskService.rejectTask(taskId, reason);
+        const response = await api.post('/api/TaskManagement/reject', { taskId, actionType: "Reject", reason });
+        return unwrapApiEnvelope(response);
     }
 };
 

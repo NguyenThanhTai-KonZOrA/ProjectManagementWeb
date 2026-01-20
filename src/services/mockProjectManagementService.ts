@@ -259,6 +259,36 @@ export const mockTaskService = {
     deleteSubTask: async (id: number): Promise<void> => {
         return mockTaskService.deleteTask(id);
     },
+
+    approveTask: async (taskId: number, reason: string = ""): Promise<void> => {
+        await delay(MOCK_DELAY);
+        console.log(`Task ${taskId} approved. Reason: ${reason}`);
+        
+        // Add activity log
+        activityLogsData.push({
+            id: getNextId(activityLogsData),
+            memberAction: "Current User",
+            actionType: "Approved",
+            entityId: taskId,
+            details: `Task approved${reason ? `: ${reason}` : ""}`,
+            timestamp: new Date(),
+        });
+    },
+
+    rejectTask: async (taskId: number, reason: string = ""): Promise<void> => {
+        await delay(MOCK_DELAY);
+        console.log(`Task ${taskId} rejected. Reason: ${reason}`);
+        
+        // Add activity log
+        activityLogsData.push({
+            id: getNextId(activityLogsData),
+            memberAction: "Current User",
+            actionType: "Rejected",
+            entityId: taskId,
+            details: `Task rejected${reason ? `: ${reason}` : ""}`,
+            timestamp: new Date(),
+        });
+    },
 };
 
 // Mock Project Category Service

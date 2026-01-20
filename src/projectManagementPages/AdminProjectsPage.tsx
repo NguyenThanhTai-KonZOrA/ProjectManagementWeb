@@ -37,6 +37,7 @@ import {
     Category as CategoryIcon,
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminLayout from "../components/layout/AdminLayout";
 import { projectManagementService, projectCategoryService } from "../services/projectManagementService";
 import type { CreateProjectRequest, ProjectResponse } from "../projectManagementTypes/projectType";
@@ -58,6 +59,7 @@ const mockEmployees = [
 
 export default function AdminProjectsPage() {
     useSetPageTitle(PAGE_TITLES.DEFAULT);
+    const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
     const [projects, setProjects] = useState<ProjectResponse[]>([]);
     const [categories, setCategories] = useState<ProjectCategoryResponse[]>([]);
@@ -365,7 +367,19 @@ export default function AdminProjectsPage() {
                                             <CategoryIcon />
                                         </Avatar>
                                         <Box sx={{ flex: 1 }}>
-                                            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 0.5 }}>
+                                            <Typography
+                                                variant="subtitle1"
+                                                fontWeight={600}
+                                                sx={{
+                                                    mb: 0.5,
+                                                    cursor: "pointer",
+                                                    "&:hover": {
+                                                        color: "primary.main",
+                                                        textDecoration: "underline"
+                                                    }
+                                                }}
+                                                onClick={() => navigate(`/admin/project-management/projects/${project.id}`)}
+                                            >
                                                 {project.projectName}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary">

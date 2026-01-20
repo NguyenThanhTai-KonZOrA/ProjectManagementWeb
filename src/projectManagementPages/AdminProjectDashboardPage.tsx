@@ -25,6 +25,7 @@ import {
     Assignment as AssignmentIcon,
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip as RechartsTooltip } from "recharts";
 import AdminLayout from "../components/layout/AdminLayout";
 import { projectDashboardService } from "../services/projectManagementService";
 import type { ProjectOverviewDashboardResponse } from "../projectManagementTypes/projectDashboardType";
@@ -177,28 +178,28 @@ export default function AdminProjectDashboardPage() {
                         title="Total Projects"
                         value={dashboardData?.totalProjects || 0}
                         icon={<FolderIcon />}
-                        color="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                        color="#6375db"
                         subtitle="Active projects"
                     />
                     <StatCard
                         title="Completed Tasks"
                         value={dashboardData?.totalCompletedTasks || 0}
                         icon={<CheckCircleIcon />}
-                        color="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
+                        color="success.main"
                         subtitle="Successfully finished"
                     />
                     <StatCard
                         title="Pending Tasks"
                         value={dashboardData?.totalPendingTasks || 0}
                         icon={<PendingActionsIcon />}
-                        color="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+                        color="warning.main"
                         subtitle="In progress"
                     />
                     <StatCard
                         title="Issues"
                         value={dashboardData?.totalIssues || 0}
                         icon={<WarningIcon />}
-                        color="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+                        color="error.main"
                         subtitle="Requires attention"
                     />
                 </Box>
@@ -221,7 +222,7 @@ export default function AdminProjectDashboardPage() {
                                                     <ListItemText
                                                         primary={
                                                             <Typography variant="body2" fontWeight={600}>
-                                                                {new Date(item.date).toLocaleDateString('vi-VN', {
+                                                                {new Date(item.date).toLocaleDateString('en-US', {
                                                                     year: 'numeric',
                                                                     month: 'long',
                                                                     day: 'numeric'
@@ -230,6 +231,9 @@ export default function AdminProjectDashboardPage() {
                                                         }
                                                         secondary={
                                                             <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+                                                                <Typography variant="body2">
+                                                                    <strong>Project:</strong> {item.projectName}
+                                                                </Typography>
                                                                 <Chip
                                                                     label={`Completed: ${item.completedTasks}`}
                                                                     size="small"
@@ -271,91 +275,72 @@ export default function AdminProjectDashboardPage() {
                     <Card>
                         <CardContent>
                             <Typography variant="h6" fontWeight={600} gutterBottom>
-                                Task Distribution
+                                Task Status Overview
                             </Typography>
                             <Divider sx={{ mb: 2 }} />
-                            <Box sx={{ mt: 2 }}>
-                                <Box sx={{ mb: 3 }}>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Completed
-                                        </Typography>
-                                        <Typography variant="body2" fontWeight={600}>
-                                            {dashboardData?.totalCompletedTasks || 0}
-                                        </Typography>
-                                    </Box>
-                                    <LinearProgress
-                                        variant="determinate"
-                                        value={
-                                            ((dashboardData?.totalCompletedTasks || 0) /
-                                                ((dashboardData?.totalCompletedTasks || 0) +
-                                                    (dashboardData?.totalPendingTasks || 1))) *
-                                            100
-                                        }
-                                        sx={{
-                                            height: 8,
-                                            borderRadius: 4,
-                                            bgcolor: "success.lighter",
-                                            "& .MuiLinearProgress-bar": {
-                                                bgcolor: "success.main",
-                                            },
-                                        }}
-                                    />
-                                </Box>
-                                <Box sx={{ mb: 3 }}>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Pending
-                                        </Typography>
-                                        <Typography variant="body2" fontWeight={600}>
-                                            {dashboardData?.totalPendingTasks || 0}
-                                        </Typography>
-                                    </Box>
-                                    <LinearProgress
-                                        variant="determinate"
-                                        value={
-                                            ((dashboardData?.totalPendingTasks || 0) /
-                                                ((dashboardData?.totalCompletedTasks || 0) +
-                                                    (dashboardData?.totalPendingTasks || 1))) *
-                                            100
-                                        }
-                                        sx={{
-                                            height: 8,
-                                            borderRadius: 4,
-                                            bgcolor: "warning.lighter",
-                                            "& .MuiLinearProgress-bar": {
-                                                bgcolor: "warning.main",
-                                            },
-                                        }}
-                                    />
-                                </Box>
-                                <Box>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Issues
-                                        </Typography>
-                                        <Typography variant="body2" fontWeight={600}>
-                                            {dashboardData?.totalIssues || 0}
-                                        </Typography>
-                                    </Box>
-                                    <LinearProgress
-                                        variant="determinate"
-                                        value={
-                                            ((dashboardData?.totalIssues || 0) /
-                                                ((dashboardData?.totalCompletedTasks || 0) +
-                                                    (dashboardData?.totalPendingTasks || 1))) *
-                                            100
-                                        }
-                                        sx={{
-                                            height: 8,
-                                            borderRadius: 4,
-                                            bgcolor: "error.lighter",
-                                            "& .MuiLinearProgress-bar": {
-                                                bgcolor: "error.main",
-                                            },
-                                        }}
-                                    />
-                                </Box>
+                            <Box sx={{ height: 350, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <defs>
+                                            <linearGradient id="gradientCompleted" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#4caf50" stopOpacity={0.8} />
+                                                <stop offset="100%" stopColor="#2e7d32" stopOpacity={1} />
+                                            </linearGradient>
+                                            <linearGradient id="gradientPending" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#ff9800" stopOpacity={0.8} />
+                                                <stop offset="100%" stopColor="#e65100" stopOpacity={1} />
+                                            </linearGradient>
+                                            <linearGradient id="gradientIssues" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#f44336" stopOpacity={0.8} />
+                                                <stop offset="100%" stopColor="#c62828" stopOpacity={1} />
+                                            </linearGradient>
+                                        </defs>
+                                        <Pie
+                                            data={[
+                                                { name: "Completed", value: dashboardData?.totalCompletedTasks || 0, color: "url(#gradientCompleted)" },
+                                                { name: "Pending", value: dashboardData?.totalPendingTasks || 0, color: "url(#gradientPending)" },
+                                                { name: "Issues", value: dashboardData?.totalIssues || 0, color: "url(#gradientIssues)" },
+                                            ]}
+                                            cx="50%"
+                                            cy="45%"
+                                            labelLine={false}
+                                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                            outerRadius={100}
+                                            innerRadius={60}
+                                            fill="#8884d8"
+                                            dataKey="value"
+                                            animationBegin={0}
+                                            animationDuration={1500}
+                                            animationEasing="ease-out"
+                                        >
+                                            {[
+                                                { name: "Completed", value: dashboardData?.totalCompletedTasks || 0, color: "url(#gradientCompleted)" },
+                                                { name: "Pending", value: dashboardData?.totalPendingTasks || 0, color: "url(#gradientPending)" },
+                                                { name: "Issues", value: dashboardData?.totalIssues || 0, color: "url(#gradientIssues)" },
+                                            ].map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <RechartsTooltip
+                                            contentStyle={{
+                                                backgroundColor: "rgba(255, 255, 255, 0.95)",
+                                                border: "1px solid #ccc",
+                                                borderRadius: "8px",
+                                                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                                            }}
+                                        />
+                                        <Legend
+                                            verticalAlign="bottom"
+                                            height={36}
+                                            iconType="circle"
+                                            formatter={(value, entry: any) => (
+                                                <span style={{ color: "#666", fontSize: "14px" }}>
+                                                    {value}: {entry.payload.value}
+                                                </span>
+                                            )}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             </Box>
                         </CardContent>
                     </Card>

@@ -46,8 +46,15 @@ const navItems: NavItem[] = [
     {
         key: 'project',
         title: 'Project Management',
-        href: '/admin-projects',
+        href: '/admin/project-management/projects',
         icon: AppIcon,
+        requiredPermission: Permission.VIEW_APPLICATION_MANAGEMENT
+    },
+    {
+        key: 'task',
+        title: 'Task Management',
+        href: '/admin-tasks',
+        icon: AssignmentIcon,
         requiredPermission: Permission.VIEW_APPLICATION_MANAGEMENT
     },
     // {
@@ -99,27 +106,27 @@ const navItems: NavItem[] = [
     //     icon: ManageHistoryIcon,
     //     requiredPermission: Permission.VIEW_AUDIT_LOGS,
     // },
-    // {
-    //     key: 'admin-roles',
-    //     title: 'Role Management',
-    //     href: '/admin-roles',
-    //     icon: RoleManagementIcon,
-    //     requiredPermission: Permission.VIEW_ROLE_MANAGEMENT
-    // },
-    // {
-    //     key: 'admin-permissions',
-    //     title: 'Permission Management',
-    //     href: '/admin-permissions',
-    //     icon: PermissionManagementIcon,
-    //     requiredPermission: Permission.VIEW_PERMISSION_MANAGEMENT
-    // },
-    // {
-    //     key: 'admin-employees',
-    //     title: 'Employee Management',
-    //     href: '/admin-employees',
-    //     icon: PeopleIcon,
-    //     requiredPermission: Permission.VIEW_EMPLOYEE_MANAGEMENT
-    // },
+    {
+        key: 'admin-roles',
+        title: 'Role Management',
+        href: '/admin-roles',
+        icon: RoleManagementIcon,
+        requiredPermission: Permission.VIEW_ROLE_MANAGEMENT
+    },
+    {
+        key: 'admin-permissions',
+        title: 'Permission Management',
+        href: '/admin-permissions',
+        icon: PermissionManagementIcon,
+        requiredPermission: Permission.VIEW_PERMISSION_MANAGEMENT
+    },
+    {
+        key: 'admin-employees',
+        title: 'Employee Management',
+        href: '/admin-employees',
+        icon: PeopleIcon,
+        requiredPermission: Permission.VIEW_EMPLOYEE_MANAGEMENT
+    },
     // {
     //     key: 'admin-settings',
     //     title: 'System Settings',

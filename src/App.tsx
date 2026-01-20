@@ -26,6 +26,8 @@ import AdminSettingsPage from './pages/AdminSettingsPage'
 import AdminProjectDashboardPage from './projectManagementPages/AdminProjectDashboardPage'
 import AdminProjectsPage from './projectManagementPages/AdminProjectsPage'
 import MockDataIndicator from './components/MockDataIndicator'
+import AdminTasksPage from './projectManagementPages/AdminTasksPage'
+import AdminProjectDetailsPage from './projectManagementPages/AdminProjectDetailsPage'
 
 function AppContent() {
   const networkStatus = useNetworkStatus();
@@ -37,7 +39,7 @@ function AppContent() {
     <>
       {/* Mock Data Indicator */}
       <MockDataIndicator />
-      
+
       {/* Network Alert */}
       <NetworkAlert {...networkStatus} />
 
@@ -64,14 +66,38 @@ function AppContent() {
           </ProtectedRoute>
         } />
 
-        <Route path="/admin-projects" element={
+        {/* Project Management Routes */}
+        <Route path="/admin/project-management/projects" element={
           <ProtectedRoute>
             <RoleBasedRoute
               requiredPermission={Permission.VIEW_ADMIN_DASHBOARD}
-              fallbackPath="/admin-projects"
+              fallbackPath="/admin/project-management/projects"
               showAccessDenied={true}
             >
               <AdminProjectsPage />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/project-management/projects/:id" element={
+          <ProtectedRoute>
+            <RoleBasedRoute
+              requiredPermission={Permission.VIEW_ADMIN_DASHBOARD}
+              fallbackPath="/admin/project-management/projects"
+              showAccessDenied={true}
+            >
+              <AdminProjectDetailsPage />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin-tasks" element={
+          <ProtectedRoute>
+            <RoleBasedRoute
+              requiredPermission={Permission.VIEW_ADMIN_DASHBOARD}
+              fallbackPath="/admin-tasks"
+              showAccessDenied={true}
+            >
+              <AdminTasksPage />
             </RoleBasedRoute>
           </ProtectedRoute>
         } />
