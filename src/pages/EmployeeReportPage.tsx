@@ -332,7 +332,7 @@ export default function EmployeeReportPage() {
                         <TableContainer component={Paper} variant="outlined">
                             <Table size="small">
                                 <TableHead>
-                                    <TableRow sx={{ bgcolor: 'grey.50' }}>
+                                    <TableRow >
                                         <TableCell
                                             align="center"
                                             sx={{
@@ -478,8 +478,10 @@ export default function EmployeeReportPage() {
                                                 <TableRow
                                                     key={index}
                                                     sx={{
-                                                        '&:nth-of-type(even)': { bgcolor: '#f8f9fa' },
-                                                        '&:hover': { bgcolor: '#e3f2fd' }
+                                                        cursor: 'pointer',
+                                                        '&:hover': {
+                                                            backgroundColor: 'action.hover'
+                                                        }
                                                     }}
                                                 >
                                                     <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>

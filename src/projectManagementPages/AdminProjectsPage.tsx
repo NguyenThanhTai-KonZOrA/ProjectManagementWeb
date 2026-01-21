@@ -24,6 +24,7 @@ import {
     Autocomplete,
     ToggleButtonGroup,
     ToggleButton,
+    InputAdornment,
 } from "@mui/material";
 import {
     Add as AddIcon,
@@ -35,6 +36,7 @@ import {
     Comment as CommentIcon,
     CalendarToday as CalendarIcon,
     Category as CategoryIcon,
+    Search as SearchIcon,
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -47,14 +49,14 @@ import { PAGE_TITLES } from "../constants/pageTitles";
 
 // Mock employee data - Replace with actual employee service when available
 const mockEmployees = [
-    { id: 1, name: "John Doe", avatar: "https://i.pravatar.cc/150?img=1" },
-    { id: 2, name: "Jane Smith", avatar: "https://i.pravatar.cc/150?img=2" },
-    { id: 3, name: "Mike Johnson", avatar: "https://i.pravatar.cc/150?img=3" },
-    { id: 4, name: "Sarah Williams", avatar: "https://i.pravatar.cc/150?img=4" },
-    { id: 5, name: "David Brown", avatar: "https://i.pravatar.cc/150?img=5" },
-    { id: 6, name: "Emily Davis", avatar: "https://i.pravatar.cc/150?img=6" },
-    { id: 7, name: "Chris Wilson", avatar: "https://i.pravatar.cc/150?img=7" },
-    { id: 8, name: "Lisa Anderson", avatar: "https://i.pravatar.cc/150?img=8" },
+    { id: 1, name: "TaiThanh.Nguyen", avatar: "https://i.pravatar.cc/150?img=1" },
+    { id: 2, name: "Nghia.Tran", avatar: "https://i.pravatar.cc/150?img=2" },
+    { id: 3, name: "Anh.Nguyen", avatar: "https://i.pravatar.cc/150?img=3" },
+    { id: 4, name: "Phuong.Cao", avatar: "https://i.pravatar.cc/150?img=4" },
+    { id: 5, name: "HaTT.Nguyen", avatar: "https://i.pravatar.cc/150?img=5" },
+    { id: 6, name: "Vuong.Nguyen", avatar: "https://i.pravatar.cc/150?img=6" },
+    { id: 7, name: "LoiC.Huynh", avatar: "https://i.pravatar.cc/150?img=7" },
+    { id: 8, name: "MaiT.Ngo", avatar: "https://i.pravatar.cc/150?img=8" },
 ];
 
 export default function AdminProjectsPage() {
@@ -68,6 +70,7 @@ export default function AdminProjectsPage() {
     const [categoryFilter, setCategoryFilter] = useState<string>("All");
     const [openDialog, setOpenDialog] = useState<boolean>(false);
     const [editingProject, setEditingProject] = useState<ProjectResponse | null>(null);
+    const [searchQuery, setSearchQuery] = useState<string>("");
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -76,7 +79,7 @@ export default function AdminProjectsPage() {
 
     const [formData, setFormData] = useState<CreateProjectRequest>({
         projectName: "",
-        projectType: "Gaming",
+        projectType: 1,
         startDate: "",
         endDate: "",
         projectMembers: [],
@@ -121,16 +124,25 @@ export default function AdminProjectsPage() {
     useEffect(() => {
         let filtered = projects;
 
+        // Search filter
+        if (searchQuery.trim()) {
+            filtered = filtered.filter(
+                (project) =>
+                    project.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    project.projectCode.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
         if (statusFilter !== "All") {
             filtered = filtered.filter((p) => getProjectStatus(p) === statusFilter);
         }
 
         if (categoryFilter !== "All") {
-            filtered = filtered.filter((p) => p.projectType === categoryFilter);
+            filtered = filtered.filter((p) => p.projectType === parseInt(categoryFilter));
         }
 
         setFilteredProjects(filtered);
-    }, [statusFilter, categoryFilter, projects]);
+    }, [searchQuery, statusFilter, categoryFilter, projects]);
 
     const getProjectStatus = (project: ProjectResponse): string => {
         const completionPercentage = (project.totalTaskCompleted / project.totalTasks) * 100;
@@ -140,6 +152,7 @@ export default function AdminProjectsPage() {
     };
 
     const getDaysLeft = (timeline: string): number => {
+        debugger
         if (!timeline) return 0;
         const match = timeline.match(/(\d+)\s*Month/i);
         if (match) {
@@ -242,7 +255,7 @@ export default function AdminProjectsPage() {
             projectMembers: project.projectMembers.map((m) => parseInt(m.memberId)),
             priority: project.priority,
             projectCategory: project.projectCategory,
-            description: "",
+            description: project.description,
         });
         setOpenDialog(true);
     };
@@ -250,7 +263,7 @@ export default function AdminProjectsPage() {
     const resetForm = () => {
         setFormData({
             projectName: "",
-            projectType: "Gaming",
+            projectType: 1,
             startDate: "",
             endDate: "",
             projectMembers: [],
@@ -286,7 +299,7 @@ export default function AdminProjectsPage() {
 
             <Box sx={{ p: 3 }}>
                 {/* Header */}
-                {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 0, zIndex: 20 }} />}
+                {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 30, zIndex: 20 }} />}
 
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                     <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
@@ -302,6 +315,25 @@ export default function AdminProjectsPage() {
                             <ToggleButton value="Completed">Completed</ToggleButton>
                             <ToggleButton value="Pending">Pending</ToggleButton>
                         </ToggleButtonGroup>
+                    </Box>
+
+                    <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
+                        {/* Project name search */}
+                        <TextField
+                            variant="outlined"
+                            size="small"
+                            placeholder="Search by project name"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ width: 350 }}
+                        />
                     </Box>
 
                     <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
@@ -335,7 +367,7 @@ export default function AdminProjectsPage() {
                 <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }, gap: 3 }}>
                     {filteredProjects.map((project) => {
                         const status = getProjectStatus(project);
-                        const daysLeft = getDaysLeft(project.projectTimeLine);
+                        const daysLeft = parseInt(project.projectTimeLine);
                         const completionPercentage = Math.round((project.totalTaskCompleted / project.totalTasks) * 100) || 0;
                         const priorityLabel = getPriorityLabel(project.priority);
                         const priorityColor = getPriorityColor(project.priority);
@@ -361,7 +393,7 @@ export default function AdminProjectsPage() {
                                             sx={{
                                                 width: 48,
                                                 height: 48,
-                                                bgcolor: project.projectType === "Gaming" ? "primary.main" : "warning.main",
+                                                bgcolor: project.projectType === 1 ? "primary.main" : "warning.main",
                                             }}
                                         >
                                             <CategoryIcon />
@@ -383,7 +415,7 @@ export default function AdminProjectsPage() {
                                                 {project.projectName}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary">
-                                                {project.projectType === "Gaming" ? "Web application" : "App mobile"}
+                                                {project.projectType === 1 ? "Web application" : "App mobile"}
                                             </Typography>
                                         </Box>
 
@@ -418,7 +450,7 @@ export default function AdminProjectsPage() {
                                             label={project.projectType}
                                             size="small"
                                             sx={{
-                                                bgcolor: project.projectType === "Gaming" ? "#8B7FDE" : "#C19A6B",
+                                                bgcolor: project.projectType === 1 ? "#8B7FDE" : "#C19A6B",
                                                 color: "white",
                                                 fontWeight: 600,
                                             }}
@@ -428,7 +460,7 @@ export default function AdminProjectsPage() {
                                             label={project.projectCategory}
                                             size="small"
                                             sx={{
-                                                bgcolor: project.projectType === "Gaming" ? "#8B7FDE" : "#C19A6B",
+                                                bgcolor: project.projectType === 1 ? "#8B7FDE" : "#C19A6B",
                                                 color: "white",
                                                 fontWeight: 600,
                                             }}
@@ -549,8 +581,6 @@ export default function AdminProjectsPage() {
                                         </Box>
                                     )}
 
-
-
                                     {/* Action Buttons */}
                                     {/* <Box sx={{ display: "flex", gap: 1 }}>
                                         <IconButton
@@ -609,10 +639,46 @@ export default function AdminProjectsPage() {
                                 label="Project Type"
                                 onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
                             >
-                                <MenuItem value="Gaming">Gaming</MenuItem>
-                                <MenuItem value="Non-gaming">Non-gaming</MenuItem>
+                                <MenuItem value={1}>Gaming</MenuItem>
+                                <MenuItem value={2}>Non-gaming</MenuItem>
                             </Select>
                         </FormControl>
+
+                        {/** Start and End Date Fields Two Cloumn **/}
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <Box sx={{ flex: 1 }}>
+                                <TextField
+                                    label="Start Date"
+                                    type="date"
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                    value={formData.startDate}
+                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                />
+                            </Box>
+
+                            <Box sx={{ flex: 1 }}>
+                                <TextField
+                                    label="End Date"
+                                    type="date"
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                    value={formData.endDate}
+                                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                />
+                            </Box>
+                        </Box>
+
+                        <Autocomplete
+                            multiple
+                            options={mockEmployees}
+                            getOptionLabel={(option) => option.name}
+                            value={mockEmployees.filter((emp) => formData.projectMembers.includes(emp.id))}
+                            onChange={(_, value) =>
+                                setFormData({ ...formData, projectMembers: value.map((v) => v.id) })
+                            }
+                            renderInput={(params) => <TextField {...params} label="Project Members" />}
+                        />
 
                         <FormControl fullWidth>
                             <InputLabel>Project Category</InputLabel>
@@ -643,34 +709,7 @@ export default function AdminProjectsPage() {
                             </Select>
                         </FormControl>
 
-                        <TextField
-                            label="Start Date"
-                            type="date"
-                            fullWidth
-                            InputLabelProps={{ shrink: true }}
-                            value={formData.startDate}
-                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                        />
 
-                        <TextField
-                            label="End Date"
-                            type="date"
-                            fullWidth
-                            InputLabelProps={{ shrink: true }}
-                            value={formData.endDate}
-                            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                        />
-
-                        <Autocomplete
-                            multiple
-                            options={mockEmployees}
-                            getOptionLabel={(option) => option.name}
-                            value={mockEmployees.filter((emp) => formData.projectMembers.includes(emp.id))}
-                            onChange={(_, value) =>
-                                setFormData({ ...formData, projectMembers: value.map((v) => v.id) })
-                            }
-                            renderInput={(params) => <TextField {...params} label="Project Members" />}
-                        />
 
                         <TextField
                             label="Description"

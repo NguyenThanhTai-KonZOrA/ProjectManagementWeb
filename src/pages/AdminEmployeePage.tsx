@@ -494,7 +494,7 @@ export default function AdminEmployeePage() {
                         <TableContainer component={Paper} variant="outlined">
                             <Table>
                                 <TableHead>
-                                    <TableRow sx={{ bgcolor: 'grey.50' }}>
+                                    <TableRow >
                                         <TableCell sx={{
                                             fontWeight: 600,
                                             textAlign: 'center',
@@ -503,26 +503,25 @@ export default function AdminEmployeePage() {
                                             backgroundColor: 'background.paper',
                                             zIndex: 3,
                                             boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-                                            borderRight: '1px solid #e0e0e0'
                                         }}>
                                             Actions
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 80 }} align="center">
+                                        <TableCell align="center">
                                             ID
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 80 }} align="center">
+                                        <TableCell align="center">
                                             Code
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 200 }}>
+                                        <TableCell >
                                             Full Name
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 200 }}>
+                                        <TableCell >
                                             Email
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 150 }}>
+                                        <TableCell >
                                             Department
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 150 }}>
+                                        <TableCell >
                                             Position
                                         </TableCell>
                                         <TableCell align="center" sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 100 }}>
@@ -550,8 +549,10 @@ export default function AdminEmployeePage() {
                                             <TableRow
                                                 key={employee.id}
                                                 sx={{
-                                                    '&:nth-of-type(even)': { bgcolor: '#f8f9fa' },
-                                                    '&:hover': { bgcolor: '#e3f2fd' }
+                                                    cursor: 'pointer',
+                                                    '&:hover': {
+                                                        backgroundColor: 'action.hover'
+                                                    }
                                                 }}
                                             >
                                                 <TableCell sx={{
@@ -561,8 +562,7 @@ export default function AdminEmployeePage() {
                                                     left: 0,
                                                     backgroundColor: 'background.paper',
                                                     zIndex: 3,
-                                                    boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-                                                    borderRight: '1px solid #e0e0e0'
+                                                    boxShadow: '2px 0 5px rgba(0,0,0,0.1)'
                                                 }}>
                                                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                                                         <Tooltip title="Assign Roles">
@@ -594,10 +594,10 @@ export default function AdminEmployeePage() {
                                                         </Tooltip>
                                                     </Box>
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }} align="center">
+                                                <TableCell align="center">
                                                     {employee.id}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }} align="center">
+                                                <TableCell align="center">
                                                     <Chip
                                                         label={employee.employeeCode}
                                                         size="small"
@@ -605,19 +605,19 @@ export default function AdminEmployeePage() {
                                                         color="primary"
                                                     />
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell >
                                                     {employee.fullName}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell >
                                                     {employee.email || '-'}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell >
                                                     {employee.department || '-'}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell >
                                                     {employee.position || '-'}
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell align="center" >
                                                     <Chip
                                                         label={employee.isActive ? "Active" : "Inactive"}
                                                         color={employee.isActive ? "success" : "error"}

@@ -61,6 +61,20 @@ const navItems: NavItem[] = [
         icon: AssignmentIcon,
         requiredPermission: Permission.VIEW_APPLICATION_MANAGEMENT
     },
+    {
+        key: 'category',
+        title: 'Category Management',
+        href: '/admin-category',
+        icon: CategoryIcon,
+        requiredPermission: Permission.VIEW_CATEGORY_MANAGEMENT
+    },
+    {
+        key: 'icons',
+        title: 'Icons Management',
+        href: '/admin-icons',
+        icon: Filter9PlusIcon,
+        requiredPermission: Permission.VIEW_ICON_MANAGEMENT
+    },
     // {
     //     key: 'application',
     //     title: 'Application Management',
@@ -82,13 +96,7 @@ const navItems: NavItem[] = [
     //     icon: FileDownloadDoneIcon,
     //     requiredPermission: Permission.VIEW_PACKAGE_MANAGEMENT
     // },
-    // {
-    //     key: 'icons',
-    //     title: 'Icons Management',
-    //     href: '/admin-icons',
-    //     icon: Filter9PlusIcon,
-    //     requiredPermission: Permission.VIEW_ICON_MANAGEMENT
-    // },
+
     // {
     //     key: 'installation',
     //     title: 'Installation Logs',

@@ -118,7 +118,7 @@ function TaskDetailDialog({ open, taskId, onClose, onTaskUpdated }: TaskDetailDi
         try {
             await commentService.createComment({
                 taskId: taskId,
-                content: newComment,
+                description: newComment,
             });
             setNewComment("");
             setSnackbar({
@@ -421,7 +421,7 @@ function TaskDetailDialog({ open, taskId, onClose, onTaskUpdated }: TaskDetailDi
                                                 {getTimeAgo(comment.createdAt)}
                                             </Typography>
                                             <Typography variant="body2" sx={{ mt: 0.5 }}>
-                                                {comment.content}
+                                                {comment.description}
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -653,7 +653,7 @@ export default function AdminTasksPage() {
         if (projectTypeFilter !== "All") {
             filtered = filtered.filter((task) => {
                 const project = projects.find((p) => parseInt(p.id) === task.projectId);
-                return project?.projectType === projectTypeFilter;
+                return project?.projectType === parseInt(projectTypeFilter);
             });
         }
 
@@ -829,7 +829,7 @@ export default function AdminTasksPage() {
                 </Alert>
             </Snackbar>
 
-            {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 0, zIndex: 20 }} />}
+            {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 20, zIndex: 20 }} />}
 
             <Box sx={{ p: 3 }}>
                 {/* Header & Filters */}

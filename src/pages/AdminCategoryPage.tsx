@@ -415,7 +415,7 @@ export default function AdminCategoryPage() {
                         <TableContainer component={Paper} variant="outlined">
                             <Table>
                                 <TableHead>
-                                    <TableRow sx={{ bgcolor: 'grey.50' }}>
+                                    <TableRow >
                                         <TableCell sx={{
                                             fontWeight: 600,
                                             textAlign: 'center',
@@ -423,36 +423,35 @@ export default function AdminCategoryPage() {
                                             left: 0,
                                             backgroundColor: 'background.paper',
                                             zIndex: 3,
-                                            boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-                                            borderRight: '1px solid #e0e0e0'
+                                            boxShadow: '2px 0 5px rgba(0,0,0,0.1)'
                                         }}>
                                             Actions
                                         </TableCell>
                                         {/* <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 80 }}>
                                             ID
                                         </TableCell> */}
-                                        <TableCell align="center" sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 100 }}>
+                                        <TableCell align="center" >
                                             Icon
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 150 }}>
+                                        <TableCell >
                                             Name
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 180 }}>
+                                        <TableCell >
                                             Display Name
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 250 }}>
+                                        <TableCell >
                                             Description
                                         </TableCell>
-                                        <TableCell align="center" sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 100 }}>
+                                        <TableCell align="center" >
                                             Display Order
                                         </TableCell>
-                                        <TableCell align="center" sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 100 }}>
+                                        <TableCell align="center" >
                                             Applications
                                         </TableCell>
-                                        <TableCell align="center" sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 100 }}>
+                                        <TableCell align="center" >
                                             Status
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 180 }}>
+                                        <TableCell >
                                             Updated At
                                         </TableCell>
                                     </TableRow>
@@ -477,10 +476,8 @@ export default function AdminCategoryPage() {
                                         currentPageData.map((category) => (
                                             <TableRow
                                                 key={category.id}
-                                                sx={{
-                                                    '&:nth-of-type(even)': { bgcolor: '#f8f9fa' },
-                                                    '&:hover': { bgcolor: '#e3f2fd' }
-                                                }}
+                                                hover
+
                                             >
                                                 <TableCell sx={{
                                                     fontWeight: 600,
@@ -489,8 +486,7 @@ export default function AdminCategoryPage() {
                                                     left: 0,
                                                     backgroundColor: 'background.paper',
                                                     zIndex: 3,
-                                                    boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-                                                    borderRight: '1px solid #e0e0e0'
+                                                    boxShadow: '2px 0 5px rgba(0,0,0,0.1)'
                                                 }}>
                                                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                                                         <Tooltip title="Edit category">
@@ -513,10 +509,10 @@ export default function AdminCategoryPage() {
                                                         </Tooltip>
                                                     </Box>
                                                 </TableCell>
-                                                {/* <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                {/* <TableCell >
                                                     {category.id}
                                                 </TableCell> */}
-                                                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell align="center" >
                                                     <Box
                                                         component="img"
                                                         src={`${API_BASE}${category.iconUrl}`}
@@ -533,16 +529,16 @@ export default function AdminCategoryPage() {
                                                         }}
                                                     />
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell >
                                                     {category.name}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell >
                                                     {category.displayName}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell >
                                                     {category.description || '-'}
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell align="center" >
                                                     <Chip
                                                         label={category.displayOrder}
                                                         color="info"
@@ -550,7 +546,7 @@ export default function AdminCategoryPage() {
                                                         variant="outlined"
                                                     />
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell align="center" >
                                                     <Chip
                                                         label={category.applicationCount}
                                                         color="primary"
@@ -558,14 +554,14 @@ export default function AdminCategoryPage() {
                                                         variant="outlined"
                                                     />
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell align="center" >
                                                     <Chip
                                                         label={category.isActive ? "Active" : "Inactive"}
                                                         color={category.isActive ? "success" : "error"}
                                                         size="small"
                                                     />
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell >
                                                     {FormatUtcTime.formatDateTime(category.updatedAt)}
                                                 </TableCell>
                                             </TableRow>

@@ -427,8 +427,6 @@ export default function AdminIconsPage() {
                                 </Box>
                             </Box>
                         </Box>
-
-
                     </CardContent>
                 </Card>
 
@@ -454,18 +452,17 @@ export default function AdminIconsPage() {
                                             left: 0,
                                             backgroundColor: 'background.paper',
                                             zIndex: 3,
-                                            boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-                                            borderRight: '1px solid #e0e0e0'
+                                            boxShadow: '2px 0 5px rgba(0,0,0,0.1)'
                                         }}>
                                             Actions
                                         </TableCell>
-                                        <TableCell width="100px" sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }} align="center">Preview</TableCell>
-                                        <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>Icon Name</TableCell>
-                                        <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>Icon Type</TableCell>
-                                        <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>File Extension</TableCell>
-                                        <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>Size</TableCell>
-                                        <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>Icon Url</TableCell>
-                                        <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>Status</TableCell>
+                                        <TableCell width="100px" align="center">Preview</TableCell>
+                                        <TableCell >Icon Name</TableCell>
+                                        <TableCell >Icon Type</TableCell>
+                                        <TableCell >File Extension</TableCell>
+                                        <TableCell >Size</TableCell>
+                                        <TableCell >Icon Url</TableCell>
+                                        <TableCell align="center" >Status</TableCell>
                                         <TableCell sx={{ fontWeight: 500 }}>Updated At</TableCell>
                                     </TableRow>
                                 </TableHead>
@@ -480,8 +477,7 @@ export default function AdminIconsPage() {
                                                     left: 0,
                                                     backgroundColor: 'background.paper',
                                                     zIndex: 3,
-                                                    boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-                                                    borderRight: '1px solid #e0e0e0'
+                                                    boxShadow: '2px 0 5px rgba(0,0,0,0.1)'
                                                 }}>
                                                     <Tooltip title="Edit">
                                                         <IconButton
@@ -503,7 +499,7 @@ export default function AdminIconsPage() {
                                                         </IconButton>
                                                     </Tooltip>
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell align="center" >
                                                     <Box
                                                         component="img"
                                                         src={`${API_BASE}${icon.fileUrl}`}
@@ -520,33 +516,33 @@ export default function AdminIconsPage() {
                                                         }}
                                                     />
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell >
                                                     <Typography variant="body2" fontWeight={600}>
                                                         {icon.name}
                                                     </Typography>
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell >
                                                     <Chip label={icon.type === 1 ? "Application" : "Category"} size="small" color={icon.type === 1 ? "success" : "secondary"} variant="outlined" />
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell align="center" >
                                                     <Chip label={icon.fileExtension} size="small" variant="outlined" color="primary" />
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell >
                                                     {(icon.fileSize / 1024).toFixed(2)} KB
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell >
                                                     <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>
                                                         {icon.fileUrl || "-"}
                                                     </Typography>
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell align="center" >
                                                     <Chip
                                                         label={icon.isActive ? "Active" : "Inactive"}
                                                         color={icon.isActive ? "success" : "error"}
                                                         size="small"
                                                     />
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell >
                                                     {FormatUtcTime.formatDateTime(icon.updatedAt)}
                                                 </TableCell>
 

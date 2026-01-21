@@ -137,7 +137,7 @@ export default function AdminProjectDashboardPage() {
 
     return (
         <AdminLayout>
-            {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 0, zIndex: 1300 }} />}
+            {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 30, zIndex: 20 }} />}
 
             <Snackbar
                 open={snackbar.open}
@@ -310,7 +310,7 @@ export default function AdminProjectDashboardPage() {
                                             fill="#8884d8"
                                             dataKey="value"
                                             animationBegin={0}
-                                            animationDuration={1500}
+                                            animationDuration={2500}
                                             animationEasing="ease-out"
                                         >
                                             {[

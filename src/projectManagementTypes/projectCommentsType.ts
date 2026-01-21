@@ -1,7 +1,7 @@
 export interface CreateCommentRequest {
     projectId?: number;
     taskId?: number;
-    content: string;
+    description: string;
 }
 
 export interface CommentResponse {
@@ -10,7 +10,7 @@ export interface CommentResponse {
     taskId: number;
     memberId: number;
     memberName: string;
-    content: string;
+    description: string;
     createdAt: string;
     updatedAt: string;
 }

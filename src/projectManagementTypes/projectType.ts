@@ -2,7 +2,7 @@ import type { ProjectMemberResponse } from "./projectMember";
 
 export interface CreateProjectRequest {
     projectName: string;
-    projectType: string;
+    projectType: number;
     startDate: string;
     endDate: string;
     projectMembers: number[];
@@ -21,6 +21,7 @@ export interface ProjectResponse {
     totalTasks: number;
     totalTaskCompleted: number;
     projectTimeLine: string;
-    projectType: string;
+    projectType: number;
     projectCategory: string;
+    description: string;
 }

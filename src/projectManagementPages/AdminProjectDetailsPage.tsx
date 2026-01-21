@@ -34,7 +34,7 @@ import type { ProjectActivityLog } from "../projectManagementTypes/projectActivi
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
 
 export default function AdminProjectDetailsPage() {
-    useSetPageTitle("Project Details");
+    useSetPageTitle("View Details");
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
@@ -98,7 +98,7 @@ export default function AdminProjectDetailsPage() {
         try {
             await commentService.createComment({
                 projectId: parseInt(id),
-                content: newComment,
+                description: newComment,
             });
             setNewComment("");
             setSnackbar({
@@ -215,7 +215,7 @@ export default function AdminProjectDetailsPage() {
                 </Alert>
             </Snackbar>
 
-            {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 0, zIndex: 20 }} />}
+            {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 30, zIndex: 20 }} />}
 
             <Box sx={{ p: 3 }}>
                 {/* Header */}
@@ -223,8 +223,8 @@ export default function AdminProjectDetailsPage() {
                     <IconButton onClick={() => navigate("/admin/project-management/projects")}>
                         <ArrowBackIcon />
                     </IconButton>
-                    <Typography variant="h5" fontWeight={700}>
-                        View detail
+                    <Typography variant="h6" fontWeight={700}>
+                        Back
                     </Typography>
                 </Box>
 
@@ -261,7 +261,7 @@ export default function AdminProjectDetailsPage() {
                                         📄 Description
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-wrap" }}>
-                                        {project?.projectType === "Gaming"
+                                        {project?.projectType === 1
                                             ? "Resource Advantage (RA) is a centralized monitoring and risk management system designed to track, analyze, and control patron transactions across casino operations. The system consolidates transaction data from multiple gaming and non-gaming systems (such as slots, tables, POS, and redemption systems) to provide real-time visibility, compliance monitoring, and anti–money laundering (AML) control.\n\nRA enables operations, compliance, and surveillance teams to:\n• Monitor cash in, cash out, and transactional behavior in real time\n• Detect unusual or high-risk patron activity based on thresholds and rules\n• Support AML reporting and regulatory compliance\n• View patron profiles, transaction history, and alerts in one place\n• Investigate and resolve suspicious activities efficiently\n\nBy acting as the central intelligence layer between operational systems and compliance reporting, RA ensures that the casino can operate safely, transparently, and in accordance with regulatory requirements."
                                             : "This is a mobile application project for non-gaming operations."}
                                     </Typography>
@@ -334,7 +334,7 @@ export default function AdminProjectDetailsPage() {
                                                 {getTimeAgo(comment.createdAt)}
                                             </Typography>
                                             <Typography variant="body2" sx={{ mt: 0.5 }}>
-                                                {comment.content}
+                                                {comment.description}
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -368,7 +368,7 @@ export default function AdminProjectDetailsPage() {
                                             label={project?.projectType}
                                             size="small"
                                             sx={{
-                                                bgcolor: project?.projectType === "Gaming" ? "#C19A6B" : "#8B7FDE",
+                                                bgcolor: project?.projectType === 1 ? "#C19A6B" : "#8B7FDE",
                                                 color: "white",
                                                 fontWeight: 600,
                                             }}

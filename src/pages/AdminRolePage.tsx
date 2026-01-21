@@ -483,7 +483,7 @@ export default function AdminRolePage() {
                         <TableContainer component={Paper} variant="outlined">
                             <Table>
                                 <TableHead>
-                                    <TableRow sx={{ bgcolor: 'grey.50' }}>
+                                    <TableRow >
                                         <TableCell sx={{
                                             fontWeight: 600,
                                             textAlign: 'center',
@@ -492,29 +492,28 @@ export default function AdminRolePage() {
                                             backgroundColor: 'background.paper',
                                             zIndex: 3,
                                             boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-                                            borderRight: '1px solid #e0e0e0'
                                         }}>
                                             Actions
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 80 }} align="center">
+                                        <TableCell align="center">
                                             ID
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 180 }}>
+                                        <TableCell >
                                             Role Name
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 250 }}>
+                                        <TableCell >
                                             Description
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 80 }} align="center">
+                                        <TableCell align="center">
                                             Permissions
                                         </TableCell>
-                                        <TableCell align="center" sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 100 }}>
+                                        <TableCell align="center" >
                                             Status
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 180 }}>
+                                        <TableCell >
                                             Created At
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 180 }}>
+                                        <TableCell >
                                             Updated At
                                         </TableCell>
                                     </TableRow>
@@ -524,13 +523,13 @@ export default function AdminRolePage() {
                                         // Loading skeleton rows
                                         Array.from({ length: itemsPerPage }).map((_, index) => (
                                             <TableRow key={index}>
-                                                <TableCell align="center"><Skeleton width="120px" /></TableCell>
-                                                <TableCell><Skeleton width="40px" /></TableCell>
-                                                <TableCell><Skeleton width="150px" /></TableCell>
-                                                <TableCell><Skeleton width="200px" /></TableCell>
-                                                <TableCell align="center"><Skeleton width="80px" /></TableCell>
-                                                <TableCell><Skeleton width="150px" /></TableCell>
-                                                <TableCell><Skeleton width="150px" /></TableCell>
+                                                <TableCell align="center"></TableCell>
+                                                <TableCell></TableCell>
+                                                <TableCell></TableCell>
+                                                <TableCell></TableCell>
+                                                <TableCell align="center"></TableCell>
+                                                <TableCell></TableCell>
+                                                <TableCell></TableCell>
                                             </TableRow>
                                         ))
                                     ) : currentPageData.length > 0 ? (
@@ -538,8 +537,10 @@ export default function AdminRolePage() {
                                             <TableRow
                                                 key={role.id}
                                                 sx={{
-                                                    '&:nth-of-type(even)': { bgcolor: '#f8f9fa' },
-                                                    '&:hover': { bgcolor: '#e3f2fd' }
+                                                    cursor: 'pointer',
+                                                    '&:hover': {
+                                                        backgroundColor: 'action.hover'
+                                                    }
                                                 }}
                                             >
                                                 <TableCell sx={{
@@ -550,7 +551,6 @@ export default function AdminRolePage() {
                                                     backgroundColor: 'background.paper',
                                                     zIndex: 3,
                                                     boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-                                                    borderRight: '1px solid #e0e0e0'
                                                 }}>
                                                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                                                         <Tooltip title="Edit role">
@@ -573,16 +573,16 @@ export default function AdminRolePage() {
                                                         </Tooltip>
                                                     </Box>
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }} align="center">
+                                                <TableCell align="center">
                                                     {role.id}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell >
                                                     {role.roleName}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell >
                                                     {role.description}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }} align="center">
+                                                <TableCell align="center">
                                                     {role.permissions && role.permissions.length > 0 ? (
                                                         // Count only of permissions
                                                         <Chip
@@ -595,7 +595,7 @@ export default function AdminRolePage() {
                                                         <Typography color="text.secondary">No permissions assigned</Typography>
                                                     )}
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell align="center" >
                                                     <Tooltip title={`${role.isActive ? 'Deactivate' : 'Activate'} role`}>
                                                         <span>
                                                             <Switch
@@ -608,10 +608,10 @@ export default function AdminRolePage() {
                                                         </span>
                                                     </Tooltip>
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell >
                                                     {FormatUtcTime.formatDateTime(role.createdAt)}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell >
                                                     {FormatUtcTime.formatDateTime(role.updatedAt)}
                                                 </TableCell>
                                             </TableRow>

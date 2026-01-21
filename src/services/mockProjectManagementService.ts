@@ -1,12 +1,12 @@
-import { 
-    mockProjects, 
-    mockProjectCategories, 
-    mockDashboardData, 
+import {
+    mockProjects,
+    mockProjectCategories,
+    mockDashboardData,
     mockTasks,
     mockComments,
     mockActivityLogs,
     delay,
-    useMockData 
+    useMockData
 } from "../../public/Mockup/mockup_data";
 import type { CreateProjectRequest, ProjectResponse } from "../projectManagementTypes/projectType";
 import type { CreateTaskRequest, TaskResponse } from "../projectManagementTypes/taskType";
@@ -34,7 +34,7 @@ const getNextId = (items: any[]): number => {
 export const mockProjectService = {
     createProject: async (request: CreateProjectRequest): Promise<ProjectResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const newProject: ProjectResponse = {
             id: getNextId(projectsData).toString(),
             projectName: request.projectName,
@@ -54,6 +54,7 @@ export const mockProjectService = {
             projectTimeLine: calculateTimeline(request.startDate, request.endDate),
             projectType: request.projectType,
             projectCategory: request.projectCategory,
+            description: "" + request.description,
         };
 
         projectsData.push(newProject);
@@ -73,7 +74,7 @@ export const mockProjectService = {
 
     updateProject: async (id: number, request: CreateProjectRequest): Promise<ProjectResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const index = projectsData.findIndex(p => parseInt(p.id) === id);
         if (index === -1) {
             throw new Error("Project not found");
@@ -110,7 +111,7 @@ export const mockProjectService = {
 
     deleteProject: async (id: number): Promise<void> => {
         await delay(MOCK_DELAY);
-        
+
         const index = projectsData.findIndex(p => parseInt(p.id) === id);
         if (index === -1) {
             throw new Error("Project not found");
@@ -132,7 +133,7 @@ export const mockProjectService = {
 
     getProjectById: async (id: number): Promise<ProjectResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const project = projectsData.find(p => parseInt(p.id) === id);
         if (!project) {
             throw new Error("Project not found");
@@ -150,7 +151,7 @@ export const mockProjectService = {
 export const mockTaskService = {
     createTask: async (request: CreateTaskRequest): Promise<TaskResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const newTask: TaskResponse = {
             id: getNextId(tasksData),
             projectId: request.projectId,
@@ -184,7 +185,7 @@ export const mockTaskService = {
 
     updateTask: async (id: number, request: CreateTaskRequest): Promise<TaskResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const index = tasksData.findIndex(t => t.id === id);
         if (index === -1) {
             throw new Error("Task not found");
@@ -212,7 +213,7 @@ export const mockTaskService = {
 
     deleteTask: async (id: number): Promise<void> => {
         await delay(MOCK_DELAY);
-        
+
         const task = tasksData.find(t => t.id === id);
         if (!task) {
             throw new Error("Task not found");
@@ -229,7 +230,7 @@ export const mockTaskService = {
 
     getTaskById: async (id: number): Promise<TaskResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const task = tasksData.find(t => t.id === id);
         if (!task) {
             throw new Error("Task not found");
@@ -263,7 +264,7 @@ export const mockTaskService = {
     approveTask: async (taskId: number, reason: string = ""): Promise<void> => {
         await delay(MOCK_DELAY);
         console.log(`Task ${taskId} approved. Reason: ${reason}`);
-        
+
         // Add activity log
         activityLogsData.push({
             id: getNextId(activityLogsData),
@@ -278,7 +279,7 @@ export const mockTaskService = {
     rejectTask: async (taskId: number, reason: string = ""): Promise<void> => {
         await delay(MOCK_DELAY);
         console.log(`Task ${taskId} rejected. Reason: ${reason}`);
-        
+
         // Add activity log
         activityLogsData.push({
             id: getNextId(activityLogsData),
@@ -295,7 +296,7 @@ export const mockTaskService = {
 export const mockCategoryService = {
     createCategory: async (request: ProjectCategoryCreateOrUpdateRequest): Promise<ProjectCategoryResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const newCategory: ProjectCategoryResponse = {
             id: getNextId(categoriesData),
             name: request.name,
@@ -316,7 +317,7 @@ export const mockCategoryService = {
 
     updateCategory: async (id: number, request: ProjectCategoryCreateOrUpdateRequest): Promise<ProjectCategoryResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const index = categoriesData.findIndex(c => c.id === id);
         if (index === -1) {
             throw new Error("Category not found");
@@ -339,7 +340,7 @@ export const mockCategoryService = {
 
     deleteCategory: async (id: number): Promise<void> => {
         await delay(MOCK_DELAY);
-        
+
         const index = categoriesData.findIndex(c => c.id === id);
         if (index === -1) {
             throw new Error("Category not found");
@@ -350,7 +351,7 @@ export const mockCategoryService = {
 
     getCategoryById: async (id: number): Promise<ProjectCategoryResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const category = categoriesData.find(c => c.id === id);
         if (!category) {
             throw new Error("Category not found");
@@ -368,14 +369,14 @@ export const mockCategoryService = {
 export const mockCommentService = {
     createComment: async (request: CreateCommentRequest): Promise<CommentResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const newComment: CommentResponse = {
             id: getNextId(commentsData),
             projectId: request.projectId || 0,
             taskId: request.taskId || 0,
             memberId: 1, // Mock current user ID
             memberName: "Current User",
-            content: request.content,
+            description: request.description,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
@@ -386,7 +387,7 @@ export const mockCommentService = {
 
     updateComment: async (id: number, request: CreateCommentRequest): Promise<CommentResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const index = commentsData.findIndex(c => c.id === id);
         if (index === -1) {
             throw new Error("Comment not found");
@@ -394,7 +395,7 @@ export const mockCommentService = {
 
         const updatedComment: CommentResponse = {
             ...commentsData[index],
-            content: request.content,
+            description: request.description,
             updatedAt: new Date().toISOString(),
         };
 
@@ -409,7 +410,7 @@ export const mockCommentService = {
 
     getCommentById: async (id: number): Promise<CommentResponse> => {
         await delay(MOCK_DELAY);
-        
+
         const comment = commentsData.find(c => c.id === id);
         if (!comment) {
             throw new Error("Comment not found");
@@ -459,7 +460,7 @@ export const mockActivityLogService = {
 export const mockDashboardService = {
     getProjectOverview: async (): Promise<ProjectOverviewDashboardResponse> => {
         await delay(MOCK_DELAY);
-        
+
         // Calculate real-time statistics from current data
         const totalProjects = projectsData.length;
         const totalCompletedTasks = projectsData.reduce((sum, p) => sum + p.totalTaskCompleted, 0);
@@ -483,7 +484,7 @@ function calculateTimeline(startDate: string, endDate: string): string {
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30));
-    
+
     if (diffMonths === 1) {
         return "1 Month";
     }

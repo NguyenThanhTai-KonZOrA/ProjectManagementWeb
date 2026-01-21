@@ -474,7 +474,7 @@ export default function AdminPermissionPage() {
                         <TableContainer component={Paper} variant="outlined">
                             <Table>
                                 <TableHead>
-                                    <TableRow sx={{ bgcolor: 'grey.50' }}>
+                                    <TableRow>
                                         <TableCell sx={{
                                             fontWeight: 600,
                                             textAlign: 'center',
@@ -482,33 +482,32 @@ export default function AdminPermissionPage() {
                                             left: 0,
                                             backgroundColor: 'background.paper',
                                             zIndex: 3,
-                                            boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-                                            borderRight: '1px solid #e0e0e0'
+                                            boxShadow: '2px 0 5px rgba(0,0,0,0.1)'
                                         }}>
                                             Actions
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 80 }} align="center">
+                                        <TableCell align="center">
                                             ID
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 200 }}>
+                                        <TableCell >
                                             Permission Name
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 150 }} align="center">
+                                        <TableCell>
                                             Permission Code
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 250 }}>
+                                        <TableCell >
                                             Description
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 80 }} align="center">
+                                        <TableCell align="center">
                                             Category
                                         </TableCell>
-                                        <TableCell align="center" sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 100 }}>
+                                        <TableCell align="center" >
                                             Status
                                         </TableCell>
-                                        {/* <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 180 }}>
+                                        {/* <TableCell >
                                             Created At
                                         </TableCell> */}
-                                        <TableCell sx={{ fontWeight: 600, borderRight: '1px solid #e0e0e0', minWidth: 180 }}>
+                                        <TableCell >
                                             Updated At
                                         </TableCell>
                                     </TableRow>
@@ -532,10 +531,11 @@ export default function AdminPermissionPage() {
                                     ) : currentPageData.length > 0 ? (
                                         currentPageData.map((permission) => (
                                             <TableRow
-                                                key={permission.id}
                                                 sx={{
-                                                    '&:nth-of-type(even)': { bgcolor: '#f8f9fa' },
-                                                    '&:hover': { bgcolor: '#e3f2fd' }
+                                                    cursor: 'pointer',
+                                                    '&:hover': {
+                                                        backgroundColor: 'action.hover'
+                                                    }
                                                 }}
                                             >
                                                 <TableCell sx={{
@@ -545,8 +545,7 @@ export default function AdminPermissionPage() {
                                                     left: 0,
                                                     backgroundColor: 'background.paper',
                                                     zIndex: 3,
-                                                    boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-                                                    borderRight: '1px solid #e0e0e0'
+                                                    boxShadow: '2px 0 5px rgba(0,0,0,0.1)'
                                                 }}>
                                                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                                                         <Tooltip title="Edit permission">
@@ -569,13 +568,13 @@ export default function AdminPermissionPage() {
                                                         </Tooltip>
                                                     </Box>
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }} align="center">
+                                                <TableCell align="center">
                                                     {permission.id}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0', fontWeight: 500 }}>
+                                                <TableCell >
                                                     {permission.permissionName}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }} align="center">
+                                                <TableCell >
                                                     <Chip
                                                         label={permission.permissionCode}
                                                         size="small"
@@ -583,10 +582,10 @@ export default function AdminPermissionPage() {
                                                         color="primary"
                                                     />
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell >
                                                     {permission.description || '-'}
                                                 </TableCell>
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }} align="center">
+                                                <TableCell align="center">
                                                     {permission.category ? (
                                                         <Chip
                                                             label={permission.category}
@@ -596,7 +595,7 @@ export default function AdminPermissionPage() {
                                                         />
                                                     ) : '-'}
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell align="center" >
                                                     <Tooltip title={`${permission.isActive ? 'Deactivate' : 'Activate'} permission`}>
                                                         <span>
                                                             <Switch
@@ -609,10 +608,10 @@ export default function AdminPermissionPage() {
                                                         </span>
                                                     </Tooltip>
                                                 </TableCell>
-                                                {/* <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                {/* <TableCell >
                                                     {FormatUtcTime.formatDateTime(permission.createdAt)}
                                                 </TableCell> */}
-                                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                                                <TableCell >
                                                     {FormatUtcTime.formatDateTime(permission.updatedAt)}
                                                 </TableCell>
                                             </TableRow>

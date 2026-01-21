@@ -1251,7 +1251,7 @@ export default function AdminApplicationPage() {
                         <TableContainer component={Paper} variant="outlined">
                             <Table>
                                 <TableHead>
-                                    <TableRow sx={{ bgcolor: 'grey.50' }}>
+                                    <TableRow >
                                         <TableCell sx={{
                                             fontWeight: 600,
                                             textAlign: 'center',
