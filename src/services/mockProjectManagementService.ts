@@ -55,6 +55,7 @@ export const mockProjectService = {
             projectType: request.projectType,
             projectCategory: request.projectCategory,
             description: "" + request.description,
+            projectTypeName: request.projectType === 1 ? "Internal" : "Client",
         };
 
         projectsData.push(newProject);

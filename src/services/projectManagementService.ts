@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { ApiEnvelope } from "../type/commonType";
 import { showSessionExpiredNotification } from "../utils/showSessionExpiredNotification";
-import type { CreateProjectRequest, ProjectResponse } from "../projectManagementTypes/projectType";
+import type { CreateProjectRequest, ProjectResponse, ProjectSummaryResponse, UpdateProjectRequest } from "../projectManagementTypes/projectType";
 import type { CreateOrUpdateSubTaskRequest, CreateTaskRequest, TaskResponse } from "../projectManagementTypes/taskType";
 import type { ProjectCategoryCreateOrUpdateRequest, ProjectCategoryResponse } from "../projectManagementTypes/projectCategoryType";
 import type { CommentResponse, CreateCommentRequest } from "../projectManagementTypes/projectCommentsType";
@@ -16,6 +16,10 @@ import {
     mockActivityLogService,
     mockDashboardService,
 } from "./mockProjectManagementService";
+import type { ProjectPriorityResponse } from "../projectManagementTypes/projectPriorityType";
+import type { ProjectStatusResponse } from "../projectManagementTypes/projectStatusType";
+import type { MemberByEmployeeResponse } from "../projectManagementTypes/projectMember";
+import type { Update } from "vite/types/hmrPayload.js";
 
 const API_BASE = (window as any)._env_?.API_BASE;
 const api = axios.create({
@@ -88,6 +92,11 @@ function unwrapApiEnvelope<T>(response: { data: ApiEnvelope<T> }): T {
 };
 
 export const projectManagementService = {
+    getProjectsSummary: async (): Promise<ProjectSummaryResponse[]> => {
+        const response = await api.get('/api/project/summary');
+        return unwrapApiEnvelope(response);
+    },
+
     createProject: async (request: CreateProjectRequest): Promise<ProjectResponse> => {
         if (useMockData()) return mockProjectService.createProject(request);
         const response = await api.post('/api/project/create', request);
@@ -140,7 +149,7 @@ export const taskManagementService = {
 
     getTaskById: async (id: number): Promise<TaskResponse> => {
         if (useMockData()) return mockTaskService.getTaskById(id);
-        const response = await api.get(`/api/task/${id}`);
+        const response = await api.get(`/api/task/detail/${id}`);
         return unwrapApiEnvelope(response);
     },
 
@@ -177,6 +186,16 @@ export const taskManagementService = {
     rejectTask: async (taskId: number, reason: string = ""): Promise<void> => {
         if (useMockData()) return mockTaskService.rejectTask(taskId, reason);
         const response = await api.post('/api/task/reject', { taskId, actionType: "Reject", reason });
+        return unwrapApiEnvelope(response);
+    },
+
+    changeTaskStatus: async (request: { taskId: number; newStatusId: string; }): Promise<void> => {
+        const response = await api.post('/api/task/change-status', request);
+        return unwrapApiEnvelope(response);
+    },
+
+    changeTaskPriority: async (request: { taskId: number; newPriorityId: number; }): Promise<void> => {
+        const response = await api.post('/api/task/change-priority', request);
         return unwrapApiEnvelope(response);
     }
 };
@@ -260,19 +279,19 @@ export const commentService = {
 export const projectActivityLogService = {
     getAllLogs: async (): Promise<ProjectActivityLog[]> => {
         if (useMockData()) return mockActivityLogService.getAllLogs();
-        const response = await api.get(`/api/ProjectActivityLog/all`);
+        const response = await api.get(`/api/ActivityLog/all`);
         return unwrapApiEnvelope(response);
     },
 
     getAllLogsOfProject: async (projectId: number): Promise<ProjectActivityLog[]> => {
         if (useMockData()) return mockActivityLogService.getAllLogsOfProject(projectId);
-        const response = await api.get(`/api/ProjectActivityLog/project/${projectId}`);
+        const response = await api.get(`/api/ActivityLog/project/${projectId}`);
         return unwrapApiEnvelope(response);
     },
 
     getAllLogsOfTask: async (taskId: number): Promise<ProjectActivityLog[]> => {
         if (useMockData()) return mockActivityLogService.getAllLogsOfTask(taskId);
-        const response = await api.get(`/api/ProjectActivityLog/task/${taskId}`);
+        const response = await api.get(`/api/ActivityLog/task/${taskId}`);
         return unwrapApiEnvelope(response);
     }
 };
@@ -281,6 +300,32 @@ export const projectDashboardService = {
     getProjectOverview: async (): Promise<ProjectOverviewDashboardResponse> => {
         if (useMockData()) return mockDashboardService.getProjectOverview();
         const response = await api.get(`/api/ProjectDashboard/overview`);
+        return unwrapApiEnvelope(response);
+    }
+};
+
+export const projectStatusService = {
+    getAllStatuses: async (): Promise<ProjectStatusResponse[]> => {
+        const response = await api.get(`/api/Status/all`);
+        return unwrapApiEnvelope(response);
+    }
+};
+
+export const projectPriorityService = {
+    getAllPriorities: async (): Promise<ProjectPriorityResponse[]> => {
+        const response = await api.get(`/api/Priority/all`);
+        return unwrapApiEnvelope(response);
+    }
+};
+
+export const projectMemberService = {
+    getAllMembers: async (): Promise<MemberByEmployeeResponse[]> => {
+        const response = await api.get(`/api/ProjectMember/all`);
+        return unwrapApiEnvelope(response);
+    },
+
+    getMemberOfProject: async (projectId: number): Promise<MemberByEmployeeResponse[]> => {
+        const response = await api.get(`/api/ProjectMember/project/${projectId}`);
         return unwrapApiEnvelope(response);
     }
 };

@@ -261,9 +261,7 @@ export default function AdminProjectDetailsPage() {
                                         📄 Description
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-wrap" }}>
-                                        {project?.projectType === 1
-                                            ? "Resource Advantage (RA) is a centralized monitoring and risk management system designed to track, analyze, and control patron transactions across casino operations. The system consolidates transaction data from multiple gaming and non-gaming systems (such as slots, tables, POS, and redemption systems) to provide real-time visibility, compliance monitoring, and anti–money laundering (AML) control.\n\nRA enables operations, compliance, and surveillance teams to:\n• Monitor cash in, cash out, and transactional behavior in real time\n• Detect unusual or high-risk patron activity based on thresholds and rules\n• Support AML reporting and regulatory compliance\n• View patron profiles, transaction history, and alerts in one place\n• Investigate and resolve suspicious activities efficiently\n\nBy acting as the central intelligence layer between operational systems and compliance reporting, RA ensures that the casino can operate safely, transparently, and in accordance with regulatory requirements."
-                                            : "This is a mobile application project for non-gaming operations."}
+                                        {project?.description || "No description provided."}
                                     </Typography>
                                 </Box>
 

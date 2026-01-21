@@ -46,21 +46,11 @@ import type { CreateProjectRequest, ProjectResponse } from "../projectManagement
 import type { ProjectCategoryResponse } from "../projectManagementTypes/projectCategoryType";
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { PAGE_TITLES } from "../constants/pageTitles";
-
-// Mock employee data - Replace with actual employee service when available
-const mockEmployees = [
-    { id: 1, name: "TaiThanh.Nguyen", avatar: "https://i.pravatar.cc/150?img=1" },
-    { id: 2, name: "Nghia.Tran", avatar: "https://i.pravatar.cc/150?img=2" },
-    { id: 3, name: "Anh.Nguyen", avatar: "https://i.pravatar.cc/150?img=3" },
-    { id: 4, name: "Phuong.Cao", avatar: "https://i.pravatar.cc/150?img=4" },
-    { id: 5, name: "HaTT.Nguyen", avatar: "https://i.pravatar.cc/150?img=5" },
-    { id: 6, name: "Vuong.Nguyen", avatar: "https://i.pravatar.cc/150?img=6" },
-    { id: 7, name: "LoiC.Huynh", avatar: "https://i.pravatar.cc/150?img=7" },
-    { id: 8, name: "MaiT.Ngo", avatar: "https://i.pravatar.cc/150?img=8" },
-];
+import { useAppData } from "../contexts/AppDataContext";
 
 export default function AdminProjectsPage() {
     useSetPageTitle(PAGE_TITLES.DEFAULT);
+    const { priorities, statuses, members } = useAppData();
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
     const [projects, setProjects] = useState<ProjectResponse[]>([]);
@@ -163,11 +153,11 @@ export default function AdminProjectsPage() {
 
     const getPriorityLabel = (priority: number): string => {
         switch (priority) {
-            case 3:
+            case 4:
                 return "Critical";
-            case 2:
+            case 3:
                 return "High";
-            case 1:
+            case 2:
                 return "Medium";
             default:
                 return "Low";
@@ -176,11 +166,11 @@ export default function AdminProjectsPage() {
 
     const getPriorityColor = (priority: number): "error" | "warning" | "info" | "default" => {
         switch (priority) {
-            case 3:
+            case 4:
                 return "error";
-            case 2:
+            case 3:
                 return "warning";
-            case 1:
+            case 2:
                 return "info";
             default:
                 return "default";
@@ -447,7 +437,7 @@ export default function AdminProjectsPage() {
                                     {/* Priority & Category Tags */}
                                     <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
                                         <Chip
-                                            label={project.projectType}
+                                            label={project.projectTypeName}
                                             size="small"
                                             sx={{
                                                 bgcolor: project.projectType === 1 ? "#8B7FDE" : "#C19A6B",
@@ -477,7 +467,19 @@ export default function AdminProjectsPage() {
                                         </Box>
                                         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                                             <AssignmentIcon fontSize="small" color="action" />
-                                            <Typography variant="body2" color="text.secondary">
+                                            <Typography
+                                                variant="body2"
+                                                color="primary"
+                                                sx={{
+                                                    cursor: "pointer",
+                                                    textDecoration: "underline",
+                                                    "&:hover": { color: "primary.dark" }
+                                                }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/admin-tasks?projectId=${project.id}`);
+                                                }}
+                                            >
                                                 {project.totalTasks} Tasks
                                             </Typography>
                                         </Box>
@@ -671,9 +673,9 @@ export default function AdminProjectsPage() {
 
                         <Autocomplete
                             multiple
-                            options={mockEmployees}
-                            getOptionLabel={(option) => option.name}
-                            value={mockEmployees.filter((emp) => formData.projectMembers.includes(emp.id))}
+                            options={members}
+                            getOptionLabel={(option) => option.employeeName}
+                            value={members.filter((emp) => formData.projectMembers.includes(emp.id))}
                             onChange={(_, value) =>
                                 setFormData({ ...formData, projectMembers: value.map((v) => v.id) })
                             }
@@ -688,8 +690,8 @@ export default function AdminProjectsPage() {
                                 onChange={(e) => setFormData({ ...formData, projectCategory: e.target.value })}
                             >
                                 {categories.map((cat) => (
-                                    <MenuItem key={cat.id} value={cat.name}>
-                                        {cat.displayName}
+                                    <MenuItem key={cat.id} value={cat.id}>
+                                        {cat.name}
                                     </MenuItem>
                                 ))}
                             </Select>
@@ -702,14 +704,13 @@ export default function AdminProjectsPage() {
                                 label="Priority"
                                 onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
                             >
-                                <MenuItem value={0}>Low</MenuItem>
-                                <MenuItem value={1}>Medium</MenuItem>
-                                <MenuItem value={2}>High</MenuItem>
-                                <MenuItem value={3}>Critical</MenuItem>
+                                {priorities.map((priority) => (
+                                    <MenuItem key={priority.id} value={priority.id}>
+                                        {priority.name}
+                                    </MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
-
-
 
                         <TextField
                             label="Description"

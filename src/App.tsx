@@ -28,6 +28,8 @@ import AdminProjectsPage from './projectManagementPages/AdminProjectsPage'
 import MockDataIndicator from './components/MockDataIndicator'
 import AdminTasksPage from './projectManagementPages/AdminTasksPage'
 import AdminProjectDetailsPage from './projectManagementPages/AdminProjectDetailsPage'
+import AdminTaskDetailsPage from './projectManagementPages/AdminTaskDetailsPage'
+import { AppDataProvider } from './contexts/AppDataContext'
 
 function AppContent() {
   const networkStatus = useNetworkStatus();
@@ -98,6 +100,18 @@ function AppContent() {
               showAccessDenied={true}
             >
               <AdminTasksPage />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/project-management/tasks/:id" element={
+          <ProtectedRoute>
+            <RoleBasedRoute
+              requiredPermission={Permission.VIEW_ADMIN_DASHBOARD}
+              fallbackPath="/admin-tasks"
+              showAccessDenied={true}
+            >
+              <AdminTaskDetailsPage />
             </RoleBasedRoute>
           </ProtectedRoute>
         } />
@@ -244,9 +258,11 @@ function App() {
     <Router>
       <PageTitleProvider>
         <AppLoadingProvider>
-          <SessionManager>
-            <AppContent />
-          </SessionManager>
+          <AppDataProvider>
+            <SessionManager>
+              <AppContent />
+            </SessionManager>
+          </AppDataProvider>
         </AppLoadingProvider>
       </PageTitleProvider>
     </Router>

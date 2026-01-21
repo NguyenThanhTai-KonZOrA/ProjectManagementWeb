@@ -48,3 +48,13 @@ export interface CreateOrUpdateSubTaskRequest {
     startDate: string;
     priority: number;
 }
+
+export interface ChangeTaskStatusRequest {
+    taskId: number;
+    newStatusId: string;
+}
+
+export interface ChangePriorityRequest {
+    taskId: number;
+    newPriorityId: number;
+}

@@ -80,7 +80,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "1 Month",
         projectType: 1,
         projectCategory: "web-application",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Internal",
     },
     {
         id: "2",
@@ -103,7 +104,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "3 Months",
         projectType: 2,
         projectCategory: "web-application",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Client",
     },
     {
         id: "3",
@@ -122,7 +124,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "1 Month",
         projectType: 1,
         projectCategory: "mobile-app",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Internal",
     },
     {
         id: "4",
@@ -141,7 +144,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "1 Month",
         projectType: 2,
         projectCategory: "mobile-app",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Client",
     },
     {
         id: "5",
@@ -164,7 +168,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "3 Months",
         projectType: 2,
         projectCategory: "web-application",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Client",
     },
     {
         id: "6",
@@ -183,7 +188,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "1 Month",
         projectType: 1,
         projectCategory: "desktop-app",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Internal",
     },
     {
         id: "7",
@@ -202,7 +208,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "1 Month",
         projectType: 1,
         projectCategory: "web-application",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Internal",
     },
     {
         id: "8",
@@ -225,7 +232,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "3 Months",
         projectType: 2,
         projectCategory: "web-application",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Client",
     },
     {
         id: "9",
@@ -244,7 +252,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "1 Month",
         projectType: 1,
         projectCategory: "mobile-app",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Internal",
     },
     {
         id: "10",
@@ -263,7 +272,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "1 Month",
         projectType: 2,
         projectCategory: "mobile-app",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Client",
     },
     {
         id: "11",
@@ -286,7 +296,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "3 Months",
         projectType: 2,
         projectCategory: "web-application",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Client",
     },
     {
         id: "12",
@@ -305,7 +316,8 @@ export const mockProjects: ProjectResponse[] = [
         projectTimeLine: "1 Month",
         projectType: 1,
         projectCategory: "desktop-app",
-        description: "A project focused on enhancing the gaming experience at Ho Tram."
+        description: "A project focused on enhancing the gaming experience at Ho Tram.",
+        projectTypeName: "Internal",
     },
 ];
 
