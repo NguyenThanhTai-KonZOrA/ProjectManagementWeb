@@ -49,9 +49,10 @@ import type { ProjectResponse } from "../projectManagementTypes/projectType";
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { useAppData } from "../contexts/AppDataContext";
 import { FormatUtcTime } from "../utils/formatUtcTime";
+import { PAGE_TITLES } from "../constants/pageTitles";
 
 export default function AdminTaskDetailsPage() {
-    useSetPageTitle("Task Details");
+    useSetPageTitle(PAGE_TITLES.TASKDETAIL);
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { priorities, statuses, members } = useAppData();
@@ -384,6 +385,11 @@ export default function AdminTaskDetailsPage() {
         return statuses.find((s) => s.id === task.statusId) || null;
     };
 
+    const getChipColorByActionName = (actionName: string) => {
+        const status = statuses.find((s) => s.name.toLowerCase() === actionName.toLowerCase());
+        return status ? status.color : "action.main";
+    };
+
     return (
         <AdminLayout>
             <Snackbar
@@ -443,10 +449,13 @@ export default function AdminTaskDetailsPage() {
                         {/* Action Buttons */}
                         <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
                             <Button
-                                variant="outlined"
+                                variant="contained"
                                 startIcon={<EditIcon />}
                                 size="small"
                                 onClick={handleOpenEditTaskDialog}
+                                sx={{
+                                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                }}
                             >
                                 Edit Task
                             </Button>
@@ -478,58 +487,34 @@ export default function AdminTaskDetailsPage() {
                                 Attachments
                             </Typography>
                             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                        p: 1.5,
-                                        bgcolor: "warning.lighter",
-                                        borderRadius: 1,
-                                    }}
-                                >
-                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                        <AttachFileIcon fontSize="small" />
-                                        <Box>
-                                            <Typography variant="body2" fontWeight={600}>
-                                                Screen-versions.png
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                34 KB • 23 Aug 2022 2:36pm
-                                            </Typography>
+                                {task?.attachments.map((attachment) => (
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            p: 1.5,
+                                            bgcolor: "warning.lighter",
+                                            borderRadius: 1,
+                                        }}
+                                    >
+                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                            <AttachFileIcon fontSize="small" />
+                                            <Box>
+                                                <Typography variant="body2" fontWeight={600}>
+                                                    {attachment.fileName}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {attachment.fileSize} • {FormatUtcTime.formatDateTime(attachment.createdAt)}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        <Box sx={{ display: "flex", gap: 1 }}>
+                                            <IconButton size="small">🗑️</IconButton>
+                                            <IconButton size="small">☁️</IconButton>
                                         </Box>
                                     </Box>
-                                    <Box sx={{ display: "flex", gap: 1 }}>
-                                        <IconButton size="small">🗑️</IconButton>
-                                        <IconButton size="small">☁️</IconButton>
-                                    </Box>
-                                </Box>
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                        p: 1.5,
-                                        bgcolor: "warning.lighter",
-                                        borderRadius: 1,
-                                    }}
-                                >
-                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                        <AttachFileIcon fontSize="small" />
-                                        <Box>
-                                            <Typography variant="body2" fontWeight={600}>
-                                                Mockups.png
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                174 KB • 23 Aug 2022 2:36pm
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                    <Box sx={{ display: "flex", gap: 1 }}>
-                                        <IconButton size="small">🗑️</IconButton>
-                                        <IconButton size="small">☁️</IconButton>
-                                    </Box>
-                                </Box>
+                                ))}
                                 <Box
                                     sx={{
                                         border: "2px dashed",
@@ -541,9 +526,7 @@ export default function AdminTaskDetailsPage() {
                                         "&:hover": { bgcolor: "action.hover" },
                                     }}
                                 >
-                                    <Typography variant="body2" color="primary">
-                                        📎 Choose files
-                                    </Typography>
+                                    
                                 </Box>
                             </Box>
                         </Card>
@@ -782,11 +765,15 @@ export default function AdminTaskDetailsPage() {
                                                 {log.memberAction}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary">
-                                                {log.actionType}
+                                                <Chip
+                                                    label={log.actionType}
+                                                    color={getChipColorByActionName(log.actionType) as any}
+                                                    size="small"
+                                                />
                                             </Typography>
                                         </Box>
                                         <Typography variant="caption" color="text.secondary" display="block">
-                                            {getTimeAgo(log.timestamp)}
+                                            {FormatUtcTime.getTimeVietnamAgoUTC(log.timeStamp)}
                                         </Typography>
                                         {log.details && (
                                             <Typography variant="body2" sx={{ mt: 0.5 }}>

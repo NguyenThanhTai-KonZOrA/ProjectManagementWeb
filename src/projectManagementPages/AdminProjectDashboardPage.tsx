@@ -137,7 +137,7 @@ export default function AdminProjectDashboardPage() {
 
     return (
         <AdminLayout>
-            {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 30, zIndex: 20 }} />}
+            {loading && <LinearProgress sx={{ position: "fixed", top: 64, left: 0, right: 40, zIndex: 20 }} />}
 
             <Snackbar
                 open={snackbar.open}
@@ -392,7 +392,7 @@ export default function AdminProjectDashboardPage() {
                                                             {activity.details}
                                                         </Typography>
                                                         <Typography variant="caption" color="text.disabled">
-                                                            {FormatUtcTime.formatDateTime(activity.timestamp.toString())}
+                                                            {FormatUtcTime.formatDateTime(activity.timeStamp)}
                                                         </Typography>
                                                     </Box>
                                                 }

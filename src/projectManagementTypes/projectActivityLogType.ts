@@ -4,5 +4,5 @@ export interface ProjectActivityLog {
     actionType: string;
     entityId: number;
     details: string;
-    timestamp: Date;
+    timeStamp: string;
 }

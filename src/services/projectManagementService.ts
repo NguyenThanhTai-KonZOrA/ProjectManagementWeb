@@ -151,6 +151,15 @@ export const taskManagementService = {
         return unwrapApiEnvelope(response);
     },
 
+    uploadAttachmentsByTask: async (id: number, formData: FormData): Promise<boolean> => {
+        const response = await api.post(`/api/task/${id}/attachments`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return unwrapApiEnvelope(response);
+    },
+
     deleteTask: async (id: number): Promise<void> => {
         if (useMockData()) return mockTaskService.deleteTask(id);
         const response = await api.post(`/api/task/delete/${id}`);

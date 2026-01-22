@@ -22,5 +22,7 @@ export const PAGE_TITLES = {
     INSTALLATION_LOGS: "Installation Logs",
     PACKAGES: "Package Management",
     REPORT_BY_APPLICATION: "Installation Report by Application",
-    DEFAULT: "Project Management"
+    DEFAULT: "Project Management",
+
+    TASKDETAIL: "Task Details"
 } as const;
