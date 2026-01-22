@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { ApiEnvelope } from "../type/commonType";
 import { showSessionExpiredNotification } from "../utils/showSessionExpiredNotification";
-import type { CreateProjectRequest, ProjectResponse, ProjectSummaryResponse, UpdateProjectRequest } from "../projectManagementTypes/projectType";
+import type { AddProjectMembersRequest, CreateProjectRequest, ProjectDetailsResponse, ProjectResponse, ProjectSummaryResponse, UpdateProjectRequest } from "../projectManagementTypes/projectType";
 import type { CreateOrUpdateSubTaskRequest, CreateTaskRequest, TaskDetailResponse, TaskResponse } from "../projectManagementTypes/taskType";
 import type { ProjectCategoryCreateOrUpdateRequest, ProjectCategoryResponse } from "../projectManagementTypes/projectCategoryType";
 import type { CommentResponse, CreateCommentRequest } from "../projectManagementTypes/projectCommentsType";
@@ -115,8 +115,7 @@ export const projectManagementService = {
         return unwrapApiEnvelope(response);
     },
 
-    getProjectById: async (id: number): Promise<ProjectResponse> => {
-        if (useMockData()) return mockProjectService.getProjectById(id);
+    getProjectById: async (id: number): Promise<ProjectDetailsResponse> => {
         const response = await api.get(`/api/project/detail/${id}`);
         return unwrapApiEnvelope(response);
     },
@@ -124,6 +123,21 @@ export const projectManagementService = {
     getAllProjects: async (): Promise<ProjectResponse[]> => {
         if (useMockData()) return mockProjectService.getAllProjects();
         const response = await api.get(`/api/project/all`);
+        return unwrapApiEnvelope(response);
+    },
+
+    // Request same UploadAttachmentsProjectRequest model
+    uploadAttachmentsProject: async (id: number, formData: FormData): Promise<boolean> => {
+        const response = await api.post(`/api/project/${id}/attachments`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return unwrapApiEnvelope(response);
+    },
+
+    addProjectMembers: async (request: AddProjectMembersRequest): Promise<void> => {
+        const response = await api.post(`/api/project/${request.projectId}/add-members`, request);
         return unwrapApiEnvelope(response);
     }
 };
@@ -151,7 +165,8 @@ export const taskManagementService = {
         return unwrapApiEnvelope(response);
     },
 
-    uploadAttachmentsByTask: async (id: number, formData: FormData): Promise<boolean> => {
+    // Request same UploadAttachmentsTaskRequest model
+    uploadAttachmentsTask: async (id: number, formData: FormData): Promise<boolean> => {
         const response = await api.post(`/api/task/${id}/attachments`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'

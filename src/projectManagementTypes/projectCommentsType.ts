@@ -1,6 +1,7 @@
 export interface CreateCommentRequest {
     projectId?: number;
     taskId?: number;
+    parentCommentId?: number;
     description: string;
 }
 

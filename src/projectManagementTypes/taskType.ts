@@ -1,5 +1,5 @@
 import type { ProjectMemberResponse } from "./projectMember";
-import type { TaskAttachmentsResponse } from "./TaskAttachmentsType";
+import type { TaskAttachmentsResponse } from "./taskAttachmentsType";
 
 export const TaskType = [
     { value: 1, label: "Development" },
@@ -75,7 +75,7 @@ export interface SubTaskResponse {
     taskTitle: string;
     description: string;
     assignees: ProjectMemberResponse[];
-    attachments: File[];
+    attachments: TaskAttachmentsResponse[];
     dueDate: string;
     startDate: string;
     priority: number;
@@ -113,4 +113,9 @@ export interface ChangeTaskStatusRequest {
 export interface ChangePriorityRequest {
     taskId: number;
     newPriorityId: number;
+}
+
+export interface UploadAttachmentsTaskRequest {
+    taskId: number;
+    attachments: File[];
 }

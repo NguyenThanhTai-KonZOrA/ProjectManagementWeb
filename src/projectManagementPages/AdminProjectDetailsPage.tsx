@@ -28,6 +28,9 @@ import {
     Edit as EditIcon,
     CalendarToday as CalendarIcon,
     ArrowBack as ArrowBackIcon,
+    ContentCopy as ContentCopyIcon,
+    Add as AddIcon,
+    AttachFile as AttachFileIcon,
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -38,12 +41,14 @@ import {
     projectActivityLogService,
     projectCategoryService,
 } from "../services/projectManagementService";
-import type { ProjectResponse, CreateProjectRequest } from "../projectManagementTypes/projectType";
+import type { ProjectResponse, CreateProjectRequest, ProjectDetailsResponse } from "../projectManagementTypes/projectType";
 import type { CommentResponse } from "../projectManagementTypes/projectCommentsType";
 import type { ProjectActivityLog } from "../projectManagementTypes/projectActivityLogType";
 import type { ProjectCategoryResponse } from "../projectManagementTypes/projectCategoryType";
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { useAppData } from "../contexts/AppDataContext";
+import { FormatUtcTime } from "../utils/formatUtcTime";
+import CommentSection from "../components/CommentSection";
 
 export default function AdminProjectDetailsPage() {
     useSetPageTitle("View Details");
@@ -51,12 +56,16 @@ export default function AdminProjectDetailsPage() {
     const navigate = useNavigate();
     const { priorities, members } = useAppData();
     const [loading, setLoading] = useState<boolean>(false);
-    const [project, setProject] = useState<ProjectResponse | null>(null);
+    const [project, setProject] = useState<ProjectDetailsResponse | null>(null);
     const [comments, setComments] = useState<CommentResponse[]>([]);
     const [activityLogs, setActivityLogs] = useState<ProjectActivityLog[]>([]);
     const [newComment, setNewComment] = useState<string>("");
     const [categories, setCategories] = useState<ProjectCategoryResponse[]>([]);
     const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
+    const [openAddMemberDialog, setOpenAddMemberDialog] = useState<boolean>(false);
+    const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const fileInputRef = useState<HTMLInputElement | null>(null)[0];
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -259,6 +268,95 @@ export default function AdminProjectDetailsPage() {
         return "default";
     };
 
+    const handleCopyToClipboard = (text: string, label: string) => {
+        navigator.clipboard.writeText(text);
+        setSnackbar({
+            open: true,
+            message: `${label} copied to clipboard`,
+            severity: "success",
+        });
+    };
+
+    const handleAddMember = async () => {
+        if (!selectedMemberId || !id) return;
+        try {
+            await projectManagementService.addProjectMembers({
+                projectId: parseInt(id),
+                memberIds: [selectedMemberId],
+            });
+            setSnackbar({
+                open: true,
+                message: "Member added successfully",
+                severity: "success",
+            });
+            setOpenAddMemberDialog(false);
+            setSelectedMemberId(null);
+            loadProjectDetails();
+            loadActivityLogs();
+        } catch (error: any) {
+            console.error("Error adding member:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to add member",
+                severity: "error",
+            });
+        }
+    };
+
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (files) {
+            setSelectedFiles(Array.from(files));
+        }
+    };
+
+    const handleUploadAttachments = async () => {
+        if (!id || selectedFiles.length === 0) return;
+        try {
+            const formData = new FormData();
+            selectedFiles.forEach((file) => {
+                formData.append("attachments", file);
+            });
+            
+            await projectManagementService.uploadAttachmentsProject(parseInt(id), formData);
+            setSnackbar({
+                open: true,
+                message: "Files uploaded successfully",
+                severity: "success",
+            });
+            setSelectedFiles([]);
+            loadProjectDetails();
+            loadActivityLogs();
+        } catch (error: any) {
+            console.error("Error uploading files:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to upload files",
+                severity: "error",
+            });
+        }
+    };
+
+    const handleCommentSubmit = async (description: string, parentCommentId?: number) => {
+        if (!id) return;
+        try {
+            await commentService.createComment({
+                projectId: parseInt(id),
+                description,
+                parentCommentId,
+            });
+            loadComments();
+            loadActivityLogs();
+        } catch (error: any) {
+            console.error("Error adding comment:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to add comment",
+                severity: "error",
+            });
+        }
+    };
+
     if (!project && !loading) {
         return (
             <AdminLayout>
@@ -349,21 +447,58 @@ export default function AdminProjectDetailsPage() {
                                     <Typography variant="h6" fontWeight={600} gutterBottom>
                                         Attachments
                                     </Typography>
-                                    <Box
-                                        sx={{
-                                            border: "2px dashed",
-                                            borderColor: "primary.main",
-                                            borderRadius: 2,
-                                            p: 3,
-                                            textAlign: "center",
-                                            cursor: "pointer",
-                                            "&:hover": { bgcolor: "action.hover" },
-                                        }}
-                                    >
-                                        <Typography variant="body2" color="primary">
-                                            📎 Choose files
-                                        </Typography>
-                                    </Box>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        style={{ display: "none" }}
+                                        id="attachment-upload"
+                                        onChange={handleFileSelect}
+                                    />
+                                    <label htmlFor="attachment-upload">
+                                        <Box
+                                            sx={{
+                                                border: "2px dashed",
+                                                borderColor: "primary.main",
+                                                borderRadius: 2,
+                                                p: 3,
+                                                textAlign: "center",
+                                                cursor: "pointer",
+                                                "&:hover": { bgcolor: "action.hover" },
+                                            }}
+                                        >
+                                            <AttachFileIcon color="primary" />
+                                            <Typography variant="body2" color="primary">
+                                                📎 Choose files (multiple files supported)
+                                            </Typography>
+                                        </Box>
+                                    </label>
+                                    {selectedFiles.length > 0 && (
+                                        <Box sx={{ mt: 2 }}>
+                                            <Typography variant="body2" fontWeight={600} gutterBottom>
+                                                Selected files: {selectedFiles.length}
+                                            </Typography>
+                                            {selectedFiles.map((file, index) => (
+                                                <Chip
+                                                    key={index}
+                                                    label={file.name}
+                                                    size="small"
+                                                    sx={{ mr: 1, mb: 1 }}
+                                                    onDelete={() => {
+                                                        setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+                                                    }}
+                                                />
+                                            ))}
+                                            <Box sx={{ mt: 1 }}>
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    onClick={handleUploadAttachments}
+                                                >
+                                                    Upload Files
+                                                </Button>
+                                            </Box>
+                                        </Box>
+                                    )}
                                 </Box>
                             </CardContent>
                         </Card>
@@ -372,54 +507,13 @@ export default function AdminProjectDetailsPage() {
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" fontWeight={600} gutterBottom>
-                                    Comment
+                                    Comments
                                 </Typography>
-
-                                {/* Add Comment */}
-                                <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-                                    <Avatar sx={{ width: 32, height: 32 }}>U</Avatar>
-                                    <TextField
-                                        fullWidth
-                                        placeholder="Add a comment"
-                                        value={newComment}
-                                        onChange={(e) => setNewComment(e.target.value)}
-                                        size="small"
-                                    />
-                                    <Button variant="contained" onClick={handleAddComment} disabled={!newComment.trim()}>
-                                        Comment
-                                    </Button>
-                                </Box>
-
-                                {/* Comments List */}
-                                {comments.map((comment) => (
-                                    <Box key={comment.id} sx={{ display: "flex", gap: 2, mb: 2 }}>
-                                        <Avatar sx={{ width: 32, height: 32 }}>
-                                            {comment.memberName.charAt(0).toUpperCase()}
-                                        </Avatar>
-                                        <Box sx={{ flex: 1 }}>
-                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                <Typography variant="body2" fontWeight={600} color="primary">
-                                                    {comment.memberName}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    Commented
-                                                </Typography>
-                                            </Box>
-                                            <Typography variant="caption" color="text.secondary" display="block">
-                                                {getTimeAgo(comment.createdAt)}
-                                            </Typography>
-                                            <Typography variant="body2" sx={{ mt: 0.5 }}>
-                                                {comment.description}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                ))}
-
-                                {comments.length === 0 && (
-                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 2 }}>
-                                        No comments yet
-                                    </Typography>
-                                )}
+                                <CommentSection
+                                    comments={comments}
+                                    onAddComment={handleCommentSubmit}
+                                    currentUserId={1}
+                                />
                             </CardContent>
                         </Card>
                     </Box>
@@ -432,6 +526,63 @@ export default function AdminProjectDetailsPage() {
                                 <Typography variant="h6" fontWeight={600} gutterBottom>
                                     Detail
                                 </Typography>
+
+                                {/* GitHub Repository Name */}
+                                {project?.gitHubRepositoryName && (
+                                    <Box sx={{ mb: 2 }}>
+                                        <Typography variant="caption" color="text.secondary">
+                                            GitHub Repository
+                                        </Typography>
+                                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+                                            <Typography variant="body2" fontWeight={600}>
+                                                {project.gitHubRepositoryName}
+                                            </Typography>
+                                            <Tooltip title="Copy repository name">
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => handleCopyToClipboard(project.gitHubRepositoryName, "Repository name")}
+                                                >
+                                                    <ContentCopyIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Box>
+                                    </Box>
+                                )}
+
+                                {/* GitHub URL */}
+                                {project?.gitHubUrl && (
+                                    <Box sx={{ mb: 2 }}>
+                                        <Typography variant="caption" color="text.secondary">
+                                            GitHub URL
+                                        </Typography>
+                                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+                                            <Typography
+                                                variant="body2"
+                                                fontWeight={600}
+                                                sx={{
+                                                    color: "primary.main",
+                                                    cursor: "pointer",
+                                                    textDecoration: "underline",
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                    whiteSpace: "nowrap",
+                                                    maxWidth: "200px",
+                                                }}
+                                                onClick={() => window.open(project.gitHubUrl, "_blank")}
+                                            >
+                                                {project.gitHubUrl}
+                                            </Typography>
+                                            <Tooltip title="Copy GitHub URL">
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => handleCopyToClipboard(project.gitHubUrl, "GitHub URL")}
+                                                >
+                                                    <ContentCopyIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Box>
+                                    </Box>
+                                )}
 
                                 {/* Project Type */}
                                 <Box sx={{ mb: 2 }}>
@@ -511,9 +662,18 @@ export default function AdminProjectDetailsPage() {
 
                                 {/* Members */}
                                 <Box>
-                                    <Typography variant="caption" color="text.secondary">
-                                        Members
-                                    </Typography>
+                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+                                        <Typography variant="caption" color="text.secondary">
+                                            Members
+                                        </Typography>
+                                        <Button
+                                            size="small"
+                                            startIcon={<AddIcon />}
+                                            onClick={() => setOpenAddMemberDialog(true)}
+                                        >
+                                            Add
+                                        </Button>
+                                    </Box>
                                     <Box sx={{ mt: 1 }}>
                                         <AvatarGroup max={10}>
                                             {project?.projectMembers.map((member, index) => (
@@ -527,11 +687,6 @@ export default function AdminProjectDetailsPage() {
                                                     </Avatar>
                                                 </Tooltip>
                                             ))}
-                                            <Tooltip title="Add member">
-                                                <Avatar sx={{ width: 32, height: 32, bgcolor: "action.hover", cursor: "pointer" }}>
-                                                    +
-                                                </Avatar>
-                                            </Tooltip>
                                         </AvatarGroup>
                                     </Box>
                                 </Box>
@@ -556,7 +711,7 @@ export default function AdminProjectDetailsPage() {
                                             </Typography>
                                         </Box>
                                         <Typography variant="caption" color="text.secondary" display="block">
-                                            {getTimeAgo(log.timestamp)}
+                                            {FormatUtcTime.getTimeVietnamAgoUTC(log.timeStamp)}
                                         </Typography>
                                         {log.details && (
                                             <Typography variant="body2" sx={{ mt: 0.5 }}>
@@ -684,6 +839,43 @@ export default function AdminProjectDetailsPage() {
                         disabled={!formData.projectName || !formData.projectCategory}
                     >
                         Update
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Add Member Dialog */}
+            <Dialog open={openAddMemberDialog} onClose={() => setOpenAddMemberDialog(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Add Member to Project</DialogTitle>
+                <DialogContent>
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                        <InputLabel>Select Member</InputLabel>
+                        <Select
+                            value={selectedMemberId || ""}
+                            label="Select Member"
+                            onChange={(e) => setSelectedMemberId(e.target.value as number)}
+                        >
+                            {members
+                                .filter(
+                                    (member) =>
+                                        !project?.projectMembers.some((pm) => parseInt(pm.memberId) === member.id)
+                                )
+                                .map((member) => (
+                                    <MenuItem key={member.id} value={member.id}>
+                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                            <Avatar sx={{ width: 24, height: 24 }}>
+                                                {member.employeeName.charAt(0)}
+                                            </Avatar>
+                                            {member.employeeName}
+                                        </Box>
+                                    </MenuItem>
+                                ))}
+                        </Select>
+                    </FormControl>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenAddMemberDialog(false)}>Cancel</Button>
+                    <Button onClick={handleAddMember} variant="contained" disabled={!selectedMemberId}>
+                        Add Member
                     </Button>
                 </DialogActions>
             </Dialog>

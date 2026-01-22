@@ -50,6 +50,7 @@ import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { useAppData } from "../contexts/AppDataContext";
 import { FormatUtcTime } from "../utils/formatUtcTime";
 import { PAGE_TITLES } from "../constants/pageTitles";
+import CommentSection from "../components/CommentSection";
 
 export default function AdminTaskDetailsPage() {
     useSetPageTitle(PAGE_TITLES.TASKDETAIL);
@@ -65,6 +66,7 @@ export default function AdminTaskDetailsPage() {
     const [loading, setLoading] = useState<boolean>(false);
     const [openSubTaskDialog, setOpenSubTaskDialog] = useState<boolean>(false);
     const [openEditTaskDialog, setOpenEditTaskDialog] = useState<boolean>(false);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -157,6 +159,62 @@ export default function AdminTaskDetailsPage() {
                 severity: "error",
             });
         }
+    };
+
+    const handleCommentSubmit = async (description: string, parentCommentId?: number) => {
+        if (!id) return;
+        try {
+            await commentService.createComment({
+                taskId: parseInt(id),
+                description,
+                parentCommentId,
+            });
+            loadTaskDetails();
+        } catch (error: any) {
+            console.error("Error adding comment:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to add comment",
+                severity: "error",
+            });
+        }
+    };
+
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (files) {
+            setSelectedFiles(Array.from(files));
+        }
+    };
+
+    const handleUploadAttachments = async () => {
+        if (!id || selectedFiles.length === 0) return;
+        try {
+            const formData = new FormData();
+            selectedFiles.forEach((file) => {
+                formData.append("attachments", file);
+            });
+            
+            await taskManagementService.uploadAttachmentsTask(parseInt(id), formData);
+            setSnackbar({
+                open: true,
+                message: "Files uploaded successfully",
+                severity: "success",
+            });
+            setSelectedFiles([]);
+            loadTaskDetails();
+        } catch (error: any) {
+            console.error("Error uploading files:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to upload files",
+                severity: "error",
+            });
+        }
+    };
+
+    const handleSubTaskClick = (subTaskId: number) => {
+        navigate(`/admin/project-management/task-detail/${subTaskId}`);
     };
 
     const handleApprove = async () => {
@@ -489,6 +547,7 @@ export default function AdminTaskDetailsPage() {
                             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                 {task?.attachments.map((attachment) => (
                                     <Box
+                                        key={attachment.id}
                                         sx={{
                                             display: "flex",
                                             alignItems: "center",
@@ -515,18 +574,61 @@ export default function AdminTaskDetailsPage() {
                                         </Box>
                                     </Box>
                                 ))}
-                                <Box
-                                    sx={{
-                                        border: "2px dashed",
-                                        borderColor: "primary.main",
-                                        borderRadius: 2,
-                                        p: 2,
-                                        textAlign: "center",
-                                        cursor: "pointer",
-                                        "&:hover": { bgcolor: "action.hover" },
-                                    }}
-                                >
-                                    
+                                
+                                {/* Upload new attachments */}
+                                <Box sx={{ mt: 2 }}>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        style={{ display: "none" }}
+                                        id="task-attachment-upload"
+                                        onChange={handleFileSelect}
+                                    />
+                                    <label htmlFor="task-attachment-upload">
+                                        <Box
+                                            sx={{
+                                                border: "2px dashed",
+                                                borderColor: "primary.main",
+                                                borderRadius: 2,
+                                                p: 3,
+                                                textAlign: "center",
+                                                cursor: "pointer",
+                                                "&:hover": { bgcolor: "action.hover" },
+                                            }}
+                                        >
+                                            <AttachFileIcon color="primary" />
+                                            <Typography variant="body2" color="primary">
+                                                📎 Choose files (multiple files supported)
+                                            </Typography>
+                                        </Box>
+                                    </label>
+                                    {selectedFiles.length > 0 && (
+                                        <Box sx={{ mt: 2 }}>
+                                            <Typography variant="body2" fontWeight={600} gutterBottom>
+                                                Selected files: {selectedFiles.length}
+                                            </Typography>
+                                            {selectedFiles.map((file, index) => (
+                                                <Chip
+                                                    key={index}
+                                                    label={file.name}
+                                                    size="small"
+                                                    sx={{ mr: 1, mb: 1 }}
+                                                    onDelete={() => {
+                                                        setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+                                                    }}
+                                                />
+                                            ))}
+                                            <Box sx={{ mt: 1 }}>
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    onClick={handleUploadAttachments}
+                                                >
+                                                    Upload Files
+                                                </Button>
+                                            </Box>
+                                        </Box>
+                                    )}
                                 </Box>
                             </Box>
                         </Card>
@@ -547,20 +649,33 @@ export default function AdminTaskDetailsPage() {
                             </Box>
                             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                 {task?.subTasks.map((subTask) => (
-                                    <FormControlLabel
+                                    <Box
                                         key={subTask.subTaskId}
-                                        control={<Checkbox defaultChecked />}
-                                        label={
-                                            <Box>
-                                                <Typography variant="body2" fontWeight={600}>
-                                                    {subTask.taskTitle}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    Created by {subTask.createdBy} {subTask.createdAt} • Assignee: {subTask.assignee}
-                                                </Typography>
-                                            </Box>
-                                        }
-                                    />
+                                        sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            p: 1,
+                                            borderRadius: 1,
+                                            cursor: "pointer",
+                                            "&:hover": { bgcolor: "action.hover" },
+                                        }}
+                                        onClick={() => handleSubTaskClick(subTask.subTaskId)}
+                                    >
+                                        <FormControlLabel
+                                            control={<Checkbox defaultChecked />}
+                                            label={
+                                                <Box>
+                                                    <Typography variant="body2" fontWeight={600}>
+                                                        {subTask.taskTitle}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Created by {subTask.createdBy} {subTask.createdAt} • Assignee: {subTask.assignee}
+                                                    </Typography>
+                                                </Box>
+                                            }
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                    </Box>
                                 ))}
                             </Box>
                         </Card>
@@ -568,57 +683,13 @@ export default function AdminTaskDetailsPage() {
                         {/* Comments */}
                         <Card sx={{ p: 3 }}>
                             <Typography variant="h6" fontWeight={600} gutterBottom>
-                                Comment
+                                Comments
                             </Typography>
-                            <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-                                <Avatar sx={{ width: 32, height: 32 }}>U</Avatar>
-                                <TextField
-                                    fullWidth
-                                    placeholder="Add a comment"
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    size="small"
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            handleAddComment();
-                                        }
-                                    }}
-                                />
-                                <Button variant="contained" onClick={handleAddComment} disabled={!newComment.trim()}>
-                                    Comment
-                                </Button>
-                            </Box>
-
-                            {comments.map((comment) => (
-                                <Box key={comment.id} sx={{ display: "flex", gap: 2, mb: 2 }}>
-                                    <Avatar sx={{ width: 32, height: 32 }}>
-                                        {comment.memberName.charAt(0).toUpperCase()}
-                                    </Avatar>
-                                    <Box sx={{ flex: 1 }}>
-                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                            <Typography variant="body2" fontWeight={600} color="primary">
-                                                {comment.memberName}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                Commented
-                                            </Typography>
-                                        </Box>
-                                        <Typography variant="caption" color="text.secondary" display="block">
-                                            {FormatUtcTime.getTimeVietnamAgoUTC(comment.createdAt)}
-                                        </Typography>
-                                        <Typography variant="body2" sx={{ mt: 0.5 }}>
-                                            {comment.description}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-                            ))}
-
-                            {comments.length === 0 && (
-                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 2 }}>
-                                    No comments yet
-                                </Typography>
-                            )}
+                            <CommentSection
+                                comments={comments}
+                                onAddComment={handleCommentSubmit}
+                                currentUserId={1}
+                            />
                         </Card>
                     </Box>
 
