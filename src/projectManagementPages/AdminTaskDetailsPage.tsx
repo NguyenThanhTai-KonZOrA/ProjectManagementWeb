@@ -20,6 +20,7 @@ import {
     DialogActions,
     Checkbox,
     FormControlLabel,
+    Autocomplete,
 } from "@mui/material";
 import {
     Edit as EditIcon,
@@ -41,12 +42,13 @@ import {
     projectActivityLogService,
     projectManagementService,
 } from "../services/projectManagementService";
-import type { TaskResponse, CreateOrUpdateSubTaskRequest } from "../projectManagementTypes/taskType";
+import type { TaskResponse, CreateOrUpdateSubTaskRequest, CreateTaskRequest, TaskDetailResponse } from "../projectManagementTypes/taskType";
 import type { CommentResponse } from "../projectManagementTypes/projectCommentsType";
 import type { ProjectActivityLog } from "../projectManagementTypes/projectActivityLogType";
 import type { ProjectResponse } from "../projectManagementTypes/projectType";
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { useAppData } from "../contexts/AppDataContext";
+import { FormatUtcTime } from "../utils/formatUtcTime";
 
 export default function AdminTaskDetailsPage() {
     useSetPageTitle("Task Details");
@@ -54,13 +56,14 @@ export default function AdminTaskDetailsPage() {
     const navigate = useNavigate();
     const { priorities, statuses, members } = useAppData();
 
-    const [task, setTask] = useState<TaskResponse | null>(null);
+    const [task, setTask] = useState<TaskDetailResponse | null>(null);
     const [project, setProject] = useState<ProjectResponse | null>(null);
     const [comments, setComments] = useState<CommentResponse[]>([]);
     const [activityLogs, setActivityLogs] = useState<ProjectActivityLog[]>([]);
     const [newComment, setNewComment] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [openSubTaskDialog, setOpenSubTaskDialog] = useState<boolean>(false);
+    const [openEditTaskDialog, setOpenEditTaskDialog] = useState<boolean>(false);
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -72,6 +75,19 @@ export default function AdminTaskDetailsPage() {
         projectId: 0,
         parentId: 0,
         taskType: "SubTask",
+        taskTitle: "",
+        description: "",
+        assignees: [],
+        attachments: [],
+        dueDate: "",
+        startDate: "",
+        priority: 1,
+    });
+
+    // Edit Task form state
+    const [editTaskForm, setEditTaskForm] = useState<CreateTaskRequest>({
+        projectId: 0,
+        taskType: "Task",
         taskTitle: "",
         description: "",
         assignees: [],
@@ -232,8 +248,8 @@ export default function AdminTaskDetailsPage() {
         if (!task) return;
         setSubTaskForm({
             projectId: task.projectId,
-            parentId: task.id,
-            taskType: "SubTask",
+            parentId: task.taskId,
+            taskType: "6", // Task
             taskTitle: "",
             description: "",
             assignees: [],
@@ -247,7 +263,21 @@ export default function AdminTaskDetailsPage() {
 
     const handleCreateSubTask = async () => {
         try {
-            await taskManagementService.createOrUpdateSubTask(subTaskForm);
+            const formDataToSend = new FormData();
+            formDataToSend.append("projectId", subTaskForm.projectId.toString());
+            formDataToSend.append("parentId", subTaskForm.parentId.toString());
+            formDataToSend.append("taskType", subTaskForm.taskType);
+            formDataToSend.append("taskTitle", subTaskForm.taskTitle);
+            formDataToSend.append("description", subTaskForm.description);
+            formDataToSend.append("dueDate", subTaskForm.dueDate);
+            formDataToSend.append("startDate", subTaskForm.startDate);
+            formDataToSend.append("priority", subTaskForm.priority.toString());
+
+            subTaskForm.assignees.forEach((assignee) => {
+                formDataToSend.append("assignees", assignee.toString());
+            });
+
+            await taskManagementService.createOrUpdateSubTask(formDataToSend);
             setSnackbar({
                 open: true,
                 message: "Subtask created successfully",
@@ -262,6 +292,63 @@ export default function AdminTaskDetailsPage() {
                 message: error?.response?.data?.message || "Failed to create subtask",
                 severity: "error",
             });
+        }
+    };
+
+    const handleOpenEditTaskDialog = () => {
+        if (!task) return;
+        setEditTaskForm({
+            projectId: task.projectId,
+            taskType: task.taskType,
+            taskTitle: task.taskTitle,
+            description: task.description,
+            assignees: task.assignees.map((a) => parseInt(a.memberId)),
+            attachments: [],
+            dueDate: task.dueDate.split("T")[0],
+            startDate: task.startDate.split("T")[0],
+            priority: task.priority,
+        });
+        setOpenEditTaskDialog(true);
+    };
+
+    const handleUpdateTask = async () => {
+        if (!id) return;
+        try {
+            setLoading(true);
+            const formDataToSend = new FormData();
+            formDataToSend.append("projectId", editTaskForm.projectId.toString());
+            formDataToSend.append("taskType", editTaskForm.taskType);
+            formDataToSend.append("taskTitle", editTaskForm.taskTitle);
+            formDataToSend.append("description", editTaskForm.description);
+            formDataToSend.append("dueDate", editTaskForm.dueDate);
+            formDataToSend.append("startDate", editTaskForm.startDate);
+            formDataToSend.append("priority", editTaskForm.priority.toString());
+
+            editTaskForm.assignees.forEach((assignee) => {
+                formDataToSend.append("assignees", assignee.toString());
+            });
+
+            editTaskForm.attachments.forEach((file) => {
+                formDataToSend.append("attachments", file);
+            });
+
+            await taskManagementService.updateTask(parseInt(id), formDataToSend);
+            setSnackbar({
+                open: true,
+                message: "Task updated successfully",
+                severity: "success",
+            });
+            setOpenEditTaskDialog(false);
+            loadTaskDetails();
+        } catch (error: any) {
+            console.error("Error updating task:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to update task",
+                severity: "error",
+            });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -293,8 +380,8 @@ export default function AdminTaskDetailsPage() {
     };
 
     const getCurrentStatus = () => {
-        // Mock - replace with actual status from task data
-        return statuses[0];
+        if (!task) return null;
+        return statuses.find((s) => s.id === task.statusId) || null;
     };
 
     return (
@@ -327,7 +414,7 @@ export default function AdminTaskDetailsPage() {
                             {task?.taskCode}: {task?.taskTitle}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                            Created by Jane Doe • Oct 10, 2023
+                            Created by {task?.createdBy} • {FormatUtcTime.formatDateTime(task?.createdAt)}
                         </Typography>
                     </Box>
                     <Button
@@ -335,7 +422,7 @@ export default function AdminTaskDetailsPage() {
                         color="success"
                         startIcon={<ApproveIcon />}
                         onClick={handleApprove}
-                        size="small"
+                        size="large"
                     >
                         Approve
                     </Button>
@@ -344,7 +431,7 @@ export default function AdminTaskDetailsPage() {
                         color="error"
                         startIcon={<RejectIcon />}
                         onClick={handleReject}
-                        size="small"
+                        size="large"
                     >
                         Reject
                     </Button>
@@ -355,7 +442,12 @@ export default function AdminTaskDetailsPage() {
                     <Box>
                         {/* Action Buttons */}
                         <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
-                            <Button variant="outlined" startIcon={<EditIcon />} size="small">
+                            <Button
+                                variant="outlined"
+                                startIcon={<EditIcon />}
+                                size="small"
+                                onClick={handleOpenEditTaskDialog}
+                            >
                                 Edit Task
                             </Button>
                             <Button variant="outlined" startIcon={<ShareIcon />} size="small">
@@ -471,45 +563,22 @@ export default function AdminTaskDetailsPage() {
                                 </Button>
                             </Box>
                             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                                <FormControlLabel
-                                    control={<Checkbox />}
-                                    label={
-                                        <Box>
-                                            <Typography variant="body2" fontWeight={600}>
-                                                #10 Created API Load List Project
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                Created by Nghia.Tran 5 hours ago • Assignee: Ha Nguyen
-                                            </Typography>
-                                        </Box>
-                                    }
-                                />
-                                <FormControlLabel
-                                    control={<Checkbox defaultChecked />}
-                                    label={
-                                        <Box>
-                                            <Typography variant="body2" fontWeight={600}>
-                                                #9 Created Database
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                Created by Nghia.Tran 5 hours ago • Assignee: Duy Le
-                                            </Typography>
-                                        </Box>
-                                    }
-                                />
-                                <FormControlLabel
-                                    control={<Checkbox defaultChecked />}
-                                    label={
-                                        <Box>
-                                            <Typography variant="body2" fontWeight={600}>
-                                                #9 Created Database
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                Created by Nghia.Tran 5 hours ago • Assignee: Duy Le
-                                            </Typography>
-                                        </Box>
-                                    }
-                                />
+                                {task?.subTasks.map((subTask) => (
+                                    <FormControlLabel
+                                        key={subTask.subTaskId}
+                                        control={<Checkbox defaultChecked />}
+                                        label={
+                                            <Box>
+                                                <Typography variant="body2" fontWeight={600}>
+                                                    {subTask.taskTitle}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    Created by {subTask.createdBy} {subTask.createdAt} • Assignee: {subTask.assignee}
+                                                </Typography>
+                                            </Box>
+                                        }
+                                    />
+                                ))}
                             </Box>
                         </Card>
 
@@ -526,6 +595,12 @@ export default function AdminTaskDetailsPage() {
                                     value={newComment}
                                     onChange={(e) => setNewComment(e.target.value)}
                                     size="small"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleAddComment();
+                                        }
+                                    }}
                                 />
                                 <Button variant="contained" onClick={handleAddComment} disabled={!newComment.trim()}>
                                     Comment
@@ -547,7 +622,7 @@ export default function AdminTaskDetailsPage() {
                                             </Typography>
                                         </Box>
                                         <Typography variant="caption" color="text.secondary" display="block">
-                                            {getTimeAgo(comment.createdAt)}
+                                            {FormatUtcTime.getTimeVietnamAgoUTC(comment.createdAt)}
                                         </Typography>
                                         <Typography variant="body2" sx={{ mt: 0.5 }}>
                                             {comment.description}
@@ -613,10 +688,11 @@ export default function AdminTaskDetailsPage() {
                                                 <MenuItem key={status.id} value={status.id}>
                                                     <Chip
                                                         label={status.name}
-                                                        size="small"
+                                                        color={status.color as any}
+                                                        size="medium"
                                                         sx={{
                                                             bgcolor: status.color,
-                                                            color: "white",
+                                                            color: status.color,
                                                         }}
                                                     />
                                                 </MenuItem>
@@ -640,7 +716,8 @@ export default function AdminTaskDetailsPage() {
                                                 <MenuItem key={priority.id} value={priority.level}>
                                                     <Chip
                                                         label={priority.name}
-                                                        size="small"
+                                                        color={priority.color as any}
+                                                        size="medium"
                                                         sx={{
                                                             bgcolor: priority.color,
                                                             color: "white",
@@ -749,23 +826,16 @@ export default function AdminTaskDetailsPage() {
                             value={subTaskForm.description}
                             onChange={(e) => setSubTaskForm({ ...subTaskForm, description: e.target.value })}
                         />
-                        <FormControl fullWidth>
-                            <InputLabel>Assignees</InputLabel>
-                            <Select
-                                multiple
-                                value={subTaskForm.assignees}
-                                label="Assignees"
-                                onChange={(e) =>
-                                    setSubTaskForm({ ...subTaskForm, assignees: e.target.value as number[] })
-                                }
-                            >
-                                {members.map((member) => (
-                                    <MenuItem key={member.id} value={member.id}>
-                                        {member.employeeName}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        <Autocomplete
+                            multiple
+                            options={members}
+                            getOptionLabel={(option) => option.employeeName}
+                            value={members.filter((emp) => subTaskForm.assignees.includes(emp.id))}
+                            onChange={(_, value) =>
+                                setSubTaskForm({ ...subTaskForm, assignees: value.map((v) => v.id) })
+                            }
+                            renderInput={(params) => <TextField {...params} label="Assignees" />}
+                        />
                         <FormControl fullWidth>
                             <InputLabel>Priority</InputLabel>
                             <Select
@@ -776,8 +846,8 @@ export default function AdminTaskDetailsPage() {
                                 }
                             >
                                 {priorities.map((priority) => (
-                                    <MenuItem key={priority.id} value={priority.level}>
-                                        {priority.displayName}
+                                    <MenuItem key={priority.id} value={priority.id}>
+                                        {priority.name}
                                     </MenuItem>
                                 ))}
                             </Select>
@@ -804,6 +874,123 @@ export default function AdminTaskDetailsPage() {
                     <Button onClick={() => setOpenSubTaskDialog(false)}>Cancel</Button>
                     <Button variant="contained" onClick={handleCreateSubTask}>
                         Create Sub-Task
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Edit Task Dialog */}
+            <Dialog open={openEditTaskDialog} onClose={() => setOpenEditTaskDialog(false)} maxWidth="md" fullWidth>
+                <DialogTitle>Edit Task</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+                        <TextField
+                            label="Task Title"
+                            fullWidth
+                            value={editTaskForm.taskTitle}
+                            onChange={(e) => setEditTaskForm({ ...editTaskForm, taskTitle: e.target.value })}
+                        />
+
+                        <TextField
+                            label="Description"
+                            fullWidth
+                            multiline
+                            rows={4}
+                            value={editTaskForm.description}
+                            onChange={(e) => setEditTaskForm({ ...editTaskForm, description: e.target.value })}
+                        />
+
+                        <Autocomplete
+                            multiple
+                            options={members}
+                            getOptionLabel={(option) => option.employeeName}
+                            value={members.filter((emp) => editTaskForm.assignees.includes(emp.id))}
+                            onChange={(_, value) =>
+                                setEditTaskForm({ ...editTaskForm, assignees: value.map((v) => v.id) })
+                            }
+                            renderInput={(params) => <TextField {...params} label="Assignees" />}
+                        />
+
+                        <FormControl fullWidth>
+                            <InputLabel>Priority</InputLabel>
+                            <Select
+                                value={editTaskForm.priority}
+                                label="Priority"
+                                onChange={(e) => setEditTaskForm({ ...editTaskForm, priority: Number(e.target.value) })}
+                            >
+                                {priorities.map((priority) => (
+                                    <MenuItem key={priority.id} value={priority.level}>
+                                        {priority.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <TextField
+                                label="Start Date"
+                                type="date"
+                                fullWidth
+                                InputLabelProps={{ shrink: true }}
+                                value={editTaskForm.startDate}
+                                onChange={(e) => setEditTaskForm({ ...editTaskForm, startDate: e.target.value })}
+                                onFocus={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                    if (input.showPicker) {
+                                        input.showPicker();
+                                    }
+                                }}
+                            />
+
+                            <TextField
+                                label="Due Date"
+                                type="date"
+                                fullWidth
+                                InputLabelProps={{ shrink: true }}
+                                value={editTaskForm.dueDate}
+                                onChange={(e) => setEditTaskForm({ ...editTaskForm, dueDate: e.target.value })}
+                                onFocus={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                    if (input.showPicker) {
+                                        input.showPicker();
+                                    }
+                                }}
+                            />
+                        </Box>
+
+                        <Button
+                            variant="outlined"
+                            component="label"
+                        >
+                            Upload Attachments
+                            <input
+                                type="file"
+                                hidden
+                                multiple
+                                onChange={(e) => {
+                                    if (e.target.files) {
+                                        setEditTaskForm({
+                                            ...editTaskForm,
+                                            attachments: Array.from(e.target.files)
+                                        });
+                                    }
+                                }}
+                            />
+                        </Button>
+                        {editTaskForm.attachments.length > 0 && (
+                            <Typography variant="caption" color="text.secondary">
+                                {editTaskForm.attachments.length} file(s) selected
+                            </Typography>
+                        )}
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenEditTaskDialog(false)}>Cancel</Button>
+                    <Button
+                        onClick={handleUpdateTask}
+                        variant="contained"
+                        disabled={!editTaskForm.taskTitle}
+                    >
+                        Update
                     </Button>
                 </DialogActions>
             </Dialog>

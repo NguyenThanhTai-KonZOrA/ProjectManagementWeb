@@ -2,7 +2,7 @@ import axios from "axios";
 import type { ApiEnvelope } from "../type/commonType";
 import { showSessionExpiredNotification } from "../utils/showSessionExpiredNotification";
 import type { CreateProjectRequest, ProjectResponse, ProjectSummaryResponse, UpdateProjectRequest } from "../projectManagementTypes/projectType";
-import type { CreateOrUpdateSubTaskRequest, CreateTaskRequest, TaskResponse } from "../projectManagementTypes/taskType";
+import type { CreateOrUpdateSubTaskRequest, CreateTaskRequest, TaskDetailResponse, TaskResponse } from "../projectManagementTypes/taskType";
 import type { ProjectCategoryCreateOrUpdateRequest, ProjectCategoryResponse } from "../projectManagementTypes/projectCategoryType";
 import type { CommentResponse, CreateCommentRequest } from "../projectManagementTypes/projectCommentsType";
 import type { ProjectActivityLog } from "../projectManagementTypes/projectActivityLogType";
@@ -129,15 +129,25 @@ export const projectManagementService = {
 };
 
 export const taskManagementService = {
-    createTask: async (request: CreateTaskRequest): Promise<TaskResponse> => {
-        if (useMockData()) return mockTaskService.createTask(request);
-        const response = await api.post('/api/task/create', request);
+    // Request same CreateTaskRequest model
+    createTask: async (formData: FormData): Promise<TaskResponse> => {
+        // if (useMockData()) return mockTaskService.createTask(formData);
+        const response = await api.post('/api/task/create', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return unwrapApiEnvelope(response);
     },
 
-    updateTask: async (id: number, request: CreateTaskRequest): Promise<TaskResponse> => {
-        if (useMockData()) return mockTaskService.updateTask(id, request);
-        const response = await api.post(`/api/task/update/${id}`, request);
+    // Request same CreateTaskRequest model
+    updateTask: async (id: number, formData: FormData): Promise<TaskResponse> => {
+        // if (useMockData()) return mockTaskService.updateTask(id, formData);
+        const response = await api.post(`/api/task/update/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return unwrapApiEnvelope(response);
     },
 
@@ -147,8 +157,7 @@ export const taskManagementService = {
         return unwrapApiEnvelope(response);
     },
 
-    getTaskById: async (id: number): Promise<TaskResponse> => {
-        if (useMockData()) return mockTaskService.getTaskById(id);
+    getTaskById: async (id: number): Promise<TaskDetailResponse> => {
         const response = await api.get(`/api/task/detail/${id}`);
         return unwrapApiEnvelope(response);
     },
@@ -165,9 +174,14 @@ export const taskManagementService = {
         return unwrapApiEnvelope(response);
     },
 
-    createOrUpdateSubTask: async (request: CreateOrUpdateSubTaskRequest): Promise<TaskResponse> => {
-        if (useMockData()) return mockTaskService.createOrUpdateSubTask(request);
-        const response = await api.post('/api/task/subtask', request);
+    // Request same CreateOrUpdateSubTaskRequest model
+    createOrUpdateSubTask: async (formData: FormData): Promise<TaskResponse> => {
+        if (useMockData()) return mockTaskService.createOrUpdateSubTask(formData);
+        const response = await api.post('/api/task/create/subtask', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return unwrapApiEnvelope(response);
     },
 

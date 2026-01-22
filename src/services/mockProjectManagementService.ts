@@ -56,6 +56,8 @@ export const mockProjectService = {
             projectCategory: request.projectCategory,
             description: "" + request.description,
             projectTypeName: request.projectType === 1 ? "Internal" : "Client",
+            statusId: 1,
+            statusName: "Active",
         };
 
         projectsData.push(newProject);
@@ -154,7 +156,7 @@ export const mockTaskService = {
         await delay(MOCK_DELAY);
 
         const newTask: TaskResponse = {
-            id: getNextId(tasksData),
+            taskId: getNextId(tasksData),
             projectId: request.projectId,
             taskType: request.taskType,
             taskTitle: request.taskTitle,
@@ -171,6 +173,11 @@ export const mockTaskService = {
             priority: request.priority,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            statusId: 1,
+            statusName: "Open",
+            priorityColor: '',
+            priorityName: '',
+            statusColor: '',
         };
 
         tasksData.push(newTask);
@@ -187,7 +194,7 @@ export const mockTaskService = {
     updateTask: async (id: number, request: CreateTaskRequest): Promise<TaskResponse> => {
         await delay(MOCK_DELAY);
 
-        const index = tasksData.findIndex(t => t.id === id);
+        const index = tasksData.findIndex(t => t.taskId === id);
         if (index === -1) {
             throw new Error("Task not found");
         }
@@ -215,12 +222,12 @@ export const mockTaskService = {
     deleteTask: async (id: number): Promise<void> => {
         await delay(MOCK_DELAY);
 
-        const task = tasksData.find(t => t.id === id);
+        const task = tasksData.find(t => t.taskId === id);
         if (!task) {
             throw new Error("Task not found");
         }
 
-        tasksData = tasksData.filter(t => t.id !== id);
+        tasksData = tasksData.filter(t => t.taskId !== id);
 
         // Update project task count
         const projectIndex = projectsData.findIndex(p => parseInt(p.id) === task.projectId);
@@ -232,7 +239,7 @@ export const mockTaskService = {
     getTaskById: async (id: number): Promise<TaskResponse> => {
         await delay(MOCK_DELAY);
 
-        const task = tasksData.find(t => t.id === id);
+        const task = tasksData.find(t => t.taskId === id);
         if (!task) {
             throw new Error("Task not found");
         }

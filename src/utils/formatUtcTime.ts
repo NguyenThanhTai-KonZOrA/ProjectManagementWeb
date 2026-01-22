@@ -34,6 +34,46 @@ export class FormatUtcTime {
     return `${day}/${month}/${year} ${hours}:${minutes}`;
   }
 
+  static getTimeVietnamAgoUTC(dateStr?: string) {
+    if (!dateStr) return "";
+
+    if (!dateStr) return "";
+    if (dateStr === "0001-01-01T00:00:00") return "-";
+
+    // Clean up the date string - remove milliseconds if present
+    let cleanDateStr = dateStr.split('.')[0];
+
+    // Replace space with 'T' if needed for ISO format
+    if (cleanDateStr.includes(' ') && !cleanDateStr.includes('T')) {
+      cleanDateStr = cleanDateStr.replace(' ', 'T');
+    }
+
+    // Server returns UTC time without 'Z' suffix, so we need to explicitly treat it as UTC
+    let utcDateStr = cleanDateStr;
+
+    // If the date string doesn't end with 'Z' or have timezone info, append 'Z' to indicate UTC
+    if (!cleanDateStr.endsWith('Z') && !cleanDateStr.includes('+') && !cleanDateStr.includes('-', 10)) {
+      utcDateStr = cleanDateStr + 'Z';
+    }
+
+    // Parse as UTC and convert to local time
+    const d = new Date(utcDateStr);
+    if (isNaN(d.getTime())) return "";
+
+    const date = new Date(d);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "Recently";
+    if (diffMins === 1) return "1 minute ago";
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours === 1) return "1 hour ago";
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} days ago`;
+  }
+
   static formatTime(dateStr?: string) {
     if (!dateStr) return "";
     if (dateStr === "0001-01-01T00:00:00") return "-";

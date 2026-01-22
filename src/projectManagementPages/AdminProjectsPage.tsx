@@ -447,10 +447,10 @@ export default function AdminProjectsPage() {
                                         />
                                         <Chip label={priorityLabel} size="small" color={priorityColor} />
                                         <Chip
-                                            label={project.projectCategory}
+                                            label={project.statusName}
                                             size="small"
                                             sx={{
-                                                bgcolor: project.projectType === 1 ? "#8B7FDE" : "#C19A6B",
+                                                bgcolor: project.statusId === 1 ? "#8B7FDE" : "#C19A6B",
                                                 color: "white",
                                                 fontWeight: 600,
                                             }}

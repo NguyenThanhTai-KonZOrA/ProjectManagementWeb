@@ -23,6 +23,11 @@ import {
     Snackbar,
     Divider,
     Menu,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Autocomplete,
 } from "@mui/material";
 import {
     Add as AddIcon,
@@ -40,7 +45,7 @@ import {
     taskManagementService,
     projectManagementService,
 } from "../services/projectManagementService";
-import type { TaskResponse } from "../projectManagementTypes/taskType";
+import { type TaskResponse, type CreateTaskRequest, TaskType } from "../projectManagementTypes/taskType";
 import type { ProjectResponse } from "../projectManagementTypes/projectType";
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { useAppData } from "../contexts/AppDataContext";
@@ -49,8 +54,8 @@ export default function AdminTasksPage() {
     useSetPageTitle("Task Management");
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { projectsSummary, members } = useAppData();
-    
+    const { projectsSummary, members, priorities } = useAppData();
+
     const [loading, setLoading] = useState<boolean>(false);
     const [tasks, setTasks] = useState<TaskResponse[]>([]);
     const [filteredTasks, setFilteredTasks] = useState<TaskResponse[]>([]);
@@ -64,11 +69,25 @@ export default function AdminTasksPage() {
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedTaskForMenu, setSelectedTaskForMenu] = useState<TaskResponse | null>(null);
+    const [openDialog, setOpenDialog] = useState<boolean>(false);
+    const [editingTask, setEditingTask] = useState<TaskResponse | null>(null);
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
         severity: "success" | "error" | "info";
     }>({ open: false, message: "", severity: "info" });
+
+    const [formData, setFormData] = useState<CreateTaskRequest>({
+        projectId: 0,
+        taskType: "Task",
+        taskTitle: "",
+        description: "",
+        assignees: [],
+        attachments: [],
+        dueDate: "",
+        startDate: "",
+        priority: 1,
+    });
 
     const loadTasks = async () => {
         setLoading(true);
@@ -99,7 +118,7 @@ export default function AdminTasksPage() {
 
     useEffect(() => {
         loadTasks();
-        loadProjects();
+        //loadProjects();
     }, []);
 
     // Apply filters
@@ -136,7 +155,7 @@ export default function AdminTasksPage() {
 
         // Assignee filter
         if (assigneeFilter !== "All") {
-            filtered = filtered.filter((task) => 
+            filtered = filtered.filter((task) =>
                 task.assignees.some((assignee) => assignee.memberId === assigneeFilter)
             );
         }
@@ -148,7 +167,7 @@ export default function AdminTasksPage() {
     const getTaskStatus = (task: TaskResponse): string => {
         // Mock status logic - in real app, this would come from task data
         const statuses = ["In Progress", "New", "Completed", "Rejected"];
-        return statuses[task.id % statuses.length];
+        return statuses[task.taskId % statuses.length];
     };
 
     const getStatusColor = (status: string) => {
@@ -209,8 +228,19 @@ export default function AdminTasksPage() {
 
     const handleEdit = () => {
         if (selectedTaskForMenu) {
-            console.log("Edit task:", selectedTaskForMenu.id);
-            // Implement edit functionality
+            setEditingTask(selectedTaskForMenu);
+            setFormData({
+                projectId: selectedTaskForMenu.projectId,
+                taskType: selectedTaskForMenu.taskType,
+                taskTitle: selectedTaskForMenu.taskTitle,
+                description: selectedTaskForMenu.description,
+                assignees: selectedTaskForMenu.assignees.map((a) => parseInt(a.memberId)),
+                attachments: [],
+                dueDate: selectedTaskForMenu.dueDate.split("T")[0],
+                startDate: selectedTaskForMenu.startDate.split("T")[0],
+                priority: selectedTaskForMenu.priority,
+            });
+            setOpenDialog(true);
         }
         handleMenuClose();
     };
@@ -224,7 +254,7 @@ export default function AdminTasksPage() {
         }
 
         try {
-            await taskManagementService.deleteTask(selectedTaskForMenu.id);
+            await taskManagementService.deleteTask(selectedTaskForMenu.taskId);
             setSnackbar({
                 open: true,
                 message: "Task deleted successfully",
@@ -246,7 +276,7 @@ export default function AdminTasksPage() {
         if (!selectedTaskForMenu) return;
 
         try {
-            await taskManagementService.approveTask(selectedTaskForMenu.id);
+            await taskManagementService.approveTask(selectedTaskForMenu.taskId);
             setSnackbar({
                 open: true,
                 message: "Task approved successfully",
@@ -268,7 +298,7 @@ export default function AdminTasksPage() {
         if (!selectedTaskForMenu) return;
 
         try {
-            await taskManagementService.rejectTask(selectedTaskForMenu.id);
+            await taskManagementService.rejectTask(selectedTaskForMenu.taskId);
             setSnackbar({
                 open: true,
                 message: "Task rejected successfully",
@@ -293,6 +323,71 @@ export default function AdminTasksPage() {
             month: "short",
             year: "numeric",
         }).format(date);
+    };
+
+    const handleOpenDialog = () => {
+        setEditingTask(null);
+        setFormData({
+            projectId: projectFilter !== "All" ? parseInt(projectFilter) : 0,
+            taskType: "Task",
+            taskTitle: "",
+            description: "",
+            assignees: [],
+            attachments: [],
+            dueDate: "",
+            startDate: "",
+            priority: 1,
+        });
+        setOpenDialog(true);
+    };
+
+    const handleCreateOrUpdateTask = async () => {
+        try {
+            setLoading(true);
+            const formDataToSend = new FormData();
+            formDataToSend.append("ProjectId", formData.projectId.toString());
+            formDataToSend.append("TaskType", formData.taskType);
+            formDataToSend.append("TaskTitle", formData.taskTitle);
+            formDataToSend.append("Description", formData.description);
+            formDataToSend.append("DueDate", formData.dueDate);
+            formDataToSend.append("StartDate", formData.startDate);
+            formDataToSend.append("Priority", formData.priority.toString());
+
+            formData.assignees.forEach((assignee) => {
+                formDataToSend.append("Assignees", assignee.toString());
+            });
+
+            formData.attachments.forEach((file) => {
+                formDataToSend.append("Attachments", file);
+            });
+
+            if (editingTask) {
+                await taskManagementService.updateTask(editingTask.taskId, formDataToSend);
+                setSnackbar({
+                    open: true,
+                    message: "Task updated successfully",
+                    severity: "success",
+                });
+            } else {
+                await taskManagementService.createTask(formDataToSend);
+                setSnackbar({
+                    open: true,
+                    message: "Task created successfully",
+                    severity: "success",
+                });
+            }
+            setOpenDialog(false);
+            loadTasks();
+        } catch (error: any) {
+            console.error("Error saving task:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to save task",
+                severity: "error",
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -333,9 +428,9 @@ export default function AdminTasksPage() {
                         {/* Project Filter */}
                         <FormControl size="small" sx={{ minWidth: 200 }}>
                             <InputLabel>Project Name</InputLabel>
-                            <Select 
-                                value={projectFilter} 
-                                label="Project Name" 
+                            <Select
+                                value={projectFilter}
+                                label="Project Name"
                                 onChange={(e) => setProjectFilter(e.target.value)}
                             >
                                 <MenuItem value="All">All Projects</MenuItem>
@@ -396,6 +491,7 @@ export default function AdminTasksPage() {
                         <Button
                             variant="contained"
                             startIcon={<AddIcon />}
+                            onClick={handleOpenDialog}
                             sx={{
                                 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                             }}
@@ -431,15 +527,15 @@ export default function AdminTasksPage() {
                                     const status = getTaskStatus(task);
                                     return (
                                         <TableRow
-                                            key={task.id}
+                                            key={task.taskId}
                                             hover
                                             sx={{ cursor: "pointer" }}
-                                            onClick={() => handleTaskClick(task.id)}
+                                            onClick={() => handleTaskClick(task.taskId)}
                                         >
                                             <TableCell>{task.taskCode}</TableCell>
                                             <TableCell>{task.taskTitle}</TableCell>
                                             <TableCell>
-                                                <Chip label={status} size="small" color={getStatusColor(status) as any} />
+                                                <Chip label={task.statusName} size="small" color={task.statusColor as any} />
                                             </TableCell>
                                             <TableCell>
                                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -454,9 +550,9 @@ export default function AdminTasksPage() {
                                             </TableCell>
                                             <TableCell>
                                                 <Chip
-                                                    label={getPriorityLabel(task.priority)}
+                                                    label={task.priorityName}
                                                     size="small"
-                                                    color={getPriorityColor(task.priority)}
+                                                    color={task.priorityColor as any}
                                                 />
                                             </TableCell>
                                             <TableCell>{formatDate(task.dueDate)}</TableCell>
@@ -521,6 +617,153 @@ export default function AdminTasksPage() {
                     <RejectIcon fontSize="small" sx={{ mr: 1, color: "error.main" }} /> Reject
                 </MenuItem>
             </Menu>
+
+            {/* Create/Edit Task Dialog */}
+            <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
+                <DialogTitle>{editingTask ? "Edit Task" : "Create New Task"}</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+                        <FormControl fullWidth>
+                            <InputLabel>Project</InputLabel>
+                            <Select
+                                value={formData.projectId || ""}
+                                label="Project"
+                                onChange={(e) => setFormData({ ...formData, projectId: e.target.value as number })}
+                            >
+                                {projectsSummary.map((project) => (
+                                    <MenuItem key={project.id} value={parseInt(project.id)}>
+                                        {project.projectName}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <TextField
+                            label="Task Title"
+                            fullWidth
+                            value={formData.taskTitle}
+                            onChange={(e) => setFormData({ ...formData, taskTitle: e.target.value })}
+                        />
+
+                        <FormControl fullWidth>
+                            <InputLabel>Task Type</InputLabel>
+                            <Select
+                                value={formData.taskType}
+                                label="Task Type"
+                                onChange={(e) => setFormData({ ...formData, taskType: e.target.value })}
+                            >
+                                {TaskType.map((type) => (
+                                    <MenuItem key={type.value} value={type.value}>
+                                        {type.label}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <TextField
+                            label="Description"
+                            fullWidth
+                            multiline
+                            rows={4}
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        />
+
+                        <Autocomplete
+                            multiple
+                            options={members}
+                            getOptionLabel={(option) => option.employeeName}
+                            value={members.filter((emp) => formData.assignees.includes(emp.id))}
+                            onChange={(_, value) =>
+                                setFormData({ ...formData, assignees: value.map((v) => v.id) })
+                            }
+                            renderInput={(params) => <TextField {...params} label="Assignees" />}
+                        />
+
+                        <FormControl fullWidth>
+                            <InputLabel>Priority</InputLabel>
+                            <Select
+                                value={formData.priority}
+                                label="Priority"
+                                onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
+                            >
+                                {priorities.map((priority) => (
+                                    <MenuItem key={priority.id} value={priority.level}>
+                                        {priority.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <TextField
+                                label="Start Date"
+                                type="date"
+                                fullWidth
+                                InputLabelProps={{ shrink: true }}
+                                value={formData.startDate}
+                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                onFocus={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                    if (input.showPicker) {
+                                        input.showPicker();
+                                    }
+                                }}
+                            />
+
+                            <TextField
+                                label="Due Date"
+                                type="date"
+                                fullWidth
+                                InputLabelProps={{ shrink: true }}
+                                value={formData.dueDate}
+                                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                                onFocus={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                    if (input.showPicker) {
+                                        input.showPicker();
+                                    }
+                                }}
+                            />
+                        </Box>
+
+                        <Button
+                            variant="outlined"
+                            component="label"
+                        >
+                            Upload Attachments
+                            <input
+                                type="file"
+                                hidden
+                                multiple
+                                onChange={(e) => {
+                                    if (e.target.files) {
+                                        setFormData({
+                                            ...formData,
+                                            attachments: Array.from(e.target.files)
+                                        });
+                                    }
+                                }}
+                            />
+                        </Button>
+                        {formData.attachments.length > 0 && (
+                            <Typography variant="caption" color="text.secondary">
+                                {formData.attachments.length} file(s) selected
+                            </Typography>
+                        )}
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+                    <Button
+                        onClick={handleCreateOrUpdateTask}
+                        variant="contained"
+                        disabled={!formData.projectId || !formData.taskTitle}
+                    >
+                        {editingTask ? "Update" : "Create"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </AdminLayout>
     );
 }

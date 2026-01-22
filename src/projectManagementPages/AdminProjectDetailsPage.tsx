@@ -14,6 +14,15 @@ import {
     Divider,
     IconButton,
     Tooltip,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Autocomplete,
 } from "@mui/material";
 import {
     Edit as EditIcon,
@@ -27,26 +36,43 @@ import {
     projectManagementService,
     commentService,
     projectActivityLogService,
+    projectCategoryService,
 } from "../services/projectManagementService";
-import type { ProjectResponse } from "../projectManagementTypes/projectType";
+import type { ProjectResponse, CreateProjectRequest } from "../projectManagementTypes/projectType";
 import type { CommentResponse } from "../projectManagementTypes/projectCommentsType";
 import type { ProjectActivityLog } from "../projectManagementTypes/projectActivityLogType";
+import type { ProjectCategoryResponse } from "../projectManagementTypes/projectCategoryType";
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
+import { useAppData } from "../contexts/AppDataContext";
 
 export default function AdminProjectDetailsPage() {
     useSetPageTitle("View Details");
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { priorities, members } = useAppData();
     const [loading, setLoading] = useState<boolean>(false);
     const [project, setProject] = useState<ProjectResponse | null>(null);
     const [comments, setComments] = useState<CommentResponse[]>([]);
     const [activityLogs, setActivityLogs] = useState<ProjectActivityLog[]>([]);
     const [newComment, setNewComment] = useState<string>("");
+    const [categories, setCategories] = useState<ProjectCategoryResponse[]>([]);
+    const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
         severity: "success" | "error" | "info";
     }>({ open: false, message: "", severity: "info" });
+
+    const [formData, setFormData] = useState<CreateProjectRequest>({
+        projectName: "",
+        projectType: 1,
+        startDate: "",
+        endDate: "",
+        projectMembers: [],
+        priority: 1,
+        projectCategory: "",
+        description: "",
+    });
 
     const loadProjectDetails = async () => {
         if (!id) return;
@@ -86,10 +112,20 @@ export default function AdminProjectDetailsPage() {
         }
     };
 
+    const loadCategories = async () => {
+        try {
+            const data = await projectCategoryService.getAllCategories();
+            setCategories(data);
+        } catch (error: any) {
+            console.error("Error loading categories:", error);
+        }
+    };
+
     useEffect(() => {
         loadProjectDetails();
         loadComments();
         loadActivityLogs();
+        loadCategories();
     }, [id]);
 
     const handleAddComment = async () => {
@@ -164,6 +200,46 @@ export default function AdminProjectDetailsPage() {
                 return "info";
             default:
                 return "default";
+        }
+    };
+
+    const handleOpenEditDialog = () => {
+        if (!project) return;
+        setFormData({
+            projectName: project.projectName,
+            projectType: project.projectType,
+            startDate: new Date().toISOString().split("T")[0],
+            endDate: new Date().toISOString().split("T")[0],
+            projectMembers: project.projectMembers.map((m) => parseInt(m.memberId)),
+            priority: project.priority,
+            projectCategory: project.projectCategory,
+            description: project.description,
+        });
+        setOpenEditDialog(true);
+    };
+
+    const handleUpdateProject = async () => {
+        if (!id) return;
+        try {
+            setLoading(true);
+            await projectManagementService.updateProject(parseInt(id), formData);
+            setSnackbar({
+                open: true,
+                message: "Project updated successfully",
+                severity: "success",
+            });
+            setOpenEditDialog(false);
+            loadProjectDetails();
+            loadActivityLogs();
+        } catch (error: any) {
+            console.error("Error updating project:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to update project",
+                severity: "error",
+            });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -247,6 +323,7 @@ export default function AdminProjectDetailsPage() {
                                     <Button
                                         variant="contained"
                                         startIcon={<EditIcon />}
+                                        onClick={handleOpenEditDialog}
                                         sx={{
                                             background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                                         }}
@@ -499,6 +576,117 @@ export default function AdminProjectDetailsPage() {
                     </Box>
                 </Box>
             </Box>
+
+            {/* Edit Project Dialog */}
+            <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} maxWidth="md" fullWidth>
+                <DialogTitle>Edit Project</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+                        <TextField
+                            label="Project Name"
+                            fullWidth
+                            value={formData.projectName}
+                            onChange={(e) => setFormData({ ...formData, projectName: e.target.value })}
+                        />
+
+                        <FormControl fullWidth>
+                            <InputLabel>Project Type</InputLabel>
+                            <Select
+                                value={formData.projectType}
+                                label="Project Type"
+                                onChange={(e) => setFormData({ ...formData, projectType: e.target.value as number })}
+                            >
+                                <MenuItem value={1}>Gaming</MenuItem>
+                                <MenuItem value={2}>Non-gaming</MenuItem>
+                            </Select>
+                        </FormControl>
+
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <Box sx={{ flex: 1 }}>
+                                <TextField
+                                    label="Start Date"
+                                    type="date"
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                    value={formData.startDate}
+                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                />
+                            </Box>
+
+                            <Box sx={{ flex: 1 }}>
+                                <TextField
+                                    label="End Date"
+                                    type="date"
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                    value={formData.endDate}
+                                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                />
+                            </Box>
+                        </Box>
+
+                        <Autocomplete
+                            multiple
+                            options={members}
+                            getOptionLabel={(option) => option.employeeName}
+                            value={members.filter((emp) => formData.projectMembers.includes(emp.id))}
+                            onChange={(_, value) =>
+                                setFormData({ ...formData, projectMembers: value.map((v) => v.id) })
+                            }
+                            renderInput={(params) => <TextField {...params} label="Project Members" />}
+                        />
+
+                        <FormControl fullWidth>
+                            <InputLabel>Project Category</InputLabel>
+                            <Select
+                                value={formData.projectCategory}
+                                label="Project Category"
+                                onChange={(e) => setFormData({ ...formData, projectCategory: e.target.value })}
+                            >
+                                {categories.map((cat) => (
+                                    <MenuItem key={cat.id} value={cat.id}>
+                                        {cat.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth>
+                            <InputLabel>Priority</InputLabel>
+                            <Select
+                                value={formData.priority}
+                                label="Priority"
+                                onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
+                            >
+                                {priorities.map((priority) => (
+                                    <MenuItem key={priority.id} value={priority.id}>
+                                        {priority.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <TextField
+                            label="Description"
+                            fullWidth
+                            multiline
+                            rows={4}
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
+                    <Button
+                        onClick={handleUpdateProject}
+                        variant="contained"
+                        disabled={!formData.projectName || !formData.projectCategory}
+                    >
+                        Update
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </AdminLayout>
     );
 }

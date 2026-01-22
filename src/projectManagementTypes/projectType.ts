@@ -37,6 +37,8 @@ export interface ProjectResponse {
     projectTypeName: string;
     projectCategory: string;
     description: string;
+    statusId: number;
+    statusName: string;
 }
 
 
