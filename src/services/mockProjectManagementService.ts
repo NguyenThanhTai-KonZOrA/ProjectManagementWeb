@@ -69,7 +69,7 @@ export const mockProjectService = {
             actionType: "Created",
             entityId: parseInt(newProject.id),
             details: `Created new project: ${newProject.projectName}`,
-            timestamp: new Date(),
+            timeStamp: new Date().toISOString(),
         });
 
         return newProject;
@@ -106,7 +106,7 @@ export const mockProjectService = {
             actionType: "Updated",
             entityId: id,
             details: `Updated project: ${updatedProject.projectName}`,
-            timestamp: new Date(),
+            timeStamp: new Date().toISOString(),
         });
 
         return updatedProject;
@@ -130,7 +130,7 @@ export const mockProjectService = {
             actionType: "Deleted",
             entityId: id,
             details: `Deleted project: ${project.projectName}`,
-            timestamp: new Date(),
+            timeStamp: new Date().toISOString(),
         });
     },
 
@@ -280,7 +280,7 @@ export const mockTaskService = {
             actionType: "Approved",
             entityId: taskId,
             details: `Task approved${reason ? `: ${reason}` : ""}`,
-            timestamp: new Date(),
+            timeStamp: new Date().toISOString(),
         });
     },
 
@@ -295,7 +295,7 @@ export const mockTaskService = {
             actionType: "Rejected",
             entityId: taskId,
             details: `Task rejected${reason ? `: ${reason}` : ""}`,
-            timestamp: new Date(),
+            timeStamp: new Date().toISOString(),
         });
     },
 };
@@ -382,11 +382,21 @@ export const mockCommentService = {
             id: getNextId(commentsData),
             projectId: request.projectId || 0,
             taskId: request.taskId || 0,
-            memberId: 1, // Mock current user ID
-            memberName: "Current User",
+            employeeId: 1, // Mock current user ID
+            employeeName: "Current User",
             description: request.description,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            currentUserReaction: 1,
+            editedAt: "",
+            heartCount: 0,
+            isEdited: false,
+            likeCount: 0,
+            loveCount: 0,
+            parentCommentId: request.parentCommentId || 0,
+            reactions: [],
+            replies: [],
+            totalReactions: 0,
         };
 
         commentsData.push(newComment);
@@ -446,21 +456,21 @@ export const mockCommentService = {
 export const mockActivityLogService = {
     getAllLogs: async (): Promise<ProjectActivityLog[]> => {
         await delay(MOCK_DELAY);
-        return [...activityLogsData].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        return [...activityLogsData].sort((a, b) => new Date(b.timeStamp).getTime() - new Date(a.timeStamp).getTime());
     },
 
     getAllLogsOfProject: async (projectId: number): Promise<ProjectActivityLog[]> => {
         await delay(MOCK_DELAY);
         return activityLogsData
             .filter(log => log.entityId === projectId)
-            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+            .sort((a, b) => new Date(b.timeStamp).getTime() - new Date(a.timeStamp).getTime());
     },
 
     getAllLogsOfTask: async (taskId: number): Promise<ProjectActivityLog[]> => {
         await delay(MOCK_DELAY);
         return activityLogsData
             .filter(log => log.entityId === taskId)
-            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+            .sort((a, b) => new Date(b.timeStamp).getTime() - new Date(a.timeStamp).getTime());
     },
 };
 
@@ -481,7 +491,7 @@ export const mockDashboardService = {
             totalCompletedTasks,
             totalPendingTasks,
             totalIssues,
-            recentActivities: activityLogsData.slice(0, 10).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
+            recentActivities: activityLogsData.slice(0, 10).sort((a, b) => new Date(b.timeStamp).getTime() - new Date(a.timeStamp).getTime()),
         };
     },
 };

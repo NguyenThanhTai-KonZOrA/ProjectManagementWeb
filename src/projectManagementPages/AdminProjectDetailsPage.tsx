@@ -221,7 +221,7 @@ export default function AdminProjectDetailsPage() {
             endDate: new Date().toISOString().split("T")[0],
             projectMembers: project.projectMembers.map((m) => parseInt(m.memberId)),
             priority: project.priority,
-            projectCategory: project.projectCategory,
+            projectCategory: project.projectCategoryName,
             description: project.description,
         });
         setOpenEditDialog(true);
@@ -314,10 +314,11 @@ export default function AdminProjectDetailsPage() {
         if (!id || selectedFiles.length === 0) return;
         try {
             const formData = new FormData();
+            formData.append("projectId", id);
             selectedFiles.forEach((file) => {
                 formData.append("attachments", file);
             });
-            
+
             await projectManagementService.uploadAttachmentsProject(parseInt(id), formData);
             setSnackbar({
                 open: true,
@@ -447,6 +448,37 @@ export default function AdminProjectDetailsPage() {
                                     <Typography variant="h6" fontWeight={600} gutterBottom>
                                         Attachments
                                     </Typography>
+                                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                        {project?.attachments.map((attachment) => (
+                                            <Box
+                                                key={attachment.id}
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "space-between",
+                                                    p: 1.5,
+                                                    bgcolor: "warning.lighter",
+                                                    borderRadius: 1,
+                                                }}
+                                            >
+                                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                    <AttachFileIcon fontSize="small" />
+                                                    <Box>
+                                                        <Typography variant="body2" fontWeight={600}>
+                                                            {attachment.fileName}
+                                                        </Typography>
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            {attachment.fileSize} KB • {FormatUtcTime.formatDateTime(attachment.createdAt)}
+                                                        </Typography>
+                                                    </Box>
+                                                </Box>
+                                                <Box sx={{ display: "flex", gap: 1 }}>
+                                                    <IconButton size="small">🗑️</IconButton>
+                                                    <IconButton size="small">☁️</IconButton>
+                                                </Box>
+                                            </Box>
+                                        ))}
+                                    </Box>
                                     <input
                                         type="file"
                                         multiple
@@ -466,7 +498,7 @@ export default function AdminProjectDetailsPage() {
                                                 "&:hover": { bgcolor: "action.hover" },
                                             }}
                                         >
-                                            <AttachFileIcon color="primary" />
+                                            {/* <AttachFileIcon color="primary" /> */}
                                             <Typography variant="body2" color="primary">
                                                 📎 Choose files (multiple files supported)
                                             </Typography>
@@ -591,7 +623,7 @@ export default function AdminProjectDetailsPage() {
                                     </Typography>
                                     <Box sx={{ mt: 0.5 }}>
                                         <Chip
-                                            label={project?.projectType}
+                                            label={project?.projectTypeName}
                                             size="small"
                                             sx={{
                                                 bgcolor: project?.projectType === 1 ? "#C19A6B" : "#8B7FDE",
@@ -608,7 +640,7 @@ export default function AdminProjectDetailsPage() {
                                         Project Category
                                     </Typography>
                                     <Typography variant="body2" fontWeight={600}>
-                                        {project?.projectCategory}
+                                        {project?.projectCategoryName}
                                     </Typography>
                                 </Box>
 
@@ -813,7 +845,7 @@ export default function AdminProjectDetailsPage() {
                                 label="Priority"
                                 onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
                             >
-                                {priorities.map((priority) => (
+                                {priorities.filter((priority) => priority.entityType === 'Project').map((priority) => (
                                     <MenuItem key={priority.id} value={priority.id}>
                                         {priority.name}
                                     </MenuItem>

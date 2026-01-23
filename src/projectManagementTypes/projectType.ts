@@ -1,3 +1,4 @@
+import type { ProjectAttachmentsResponse } from "./projectAttachmentsResponse";
 import type { ProjectMemberResponse } from "./projectMember";
 
 export interface CreateProjectRequest {
@@ -48,12 +49,14 @@ export interface ProjectDetailsResponse {
     priority: number;
     comments: string[];
     projectMembers: ProjectMemberResponse[];
+    attachments: ProjectAttachmentsResponse[];
     totalTasks: number;
     totalTaskCompleted: number;
     projectTimeLine: string;
     projectType: number;
     projectTypeName: string;
-    projectCategory: string;
+    projectCategoryId: number;
+    projectCategoryName: string;
     description: string;
     statusId: number;
     statusName: string;

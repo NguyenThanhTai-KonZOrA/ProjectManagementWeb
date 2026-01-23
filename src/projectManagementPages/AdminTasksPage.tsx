@@ -687,7 +687,7 @@ export default function AdminTasksPage() {
                                 label="Priority"
                                 onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
                             >
-                                {priorities.map((priority) => (
+                                {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
                                     <MenuItem key={priority.id} value={priority.level}>
                                         {priority.name}
                                     </MenuItem>

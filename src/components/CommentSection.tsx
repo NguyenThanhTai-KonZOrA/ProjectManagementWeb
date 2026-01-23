@@ -9,6 +9,10 @@ import {
     MenuItem,
     Chip,
     Tooltip,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
 } from "@mui/material";
 import {
     FavoriteBorder as HeartIcon,
@@ -18,28 +22,28 @@ import {
     MoreVert as MoreVertIcon,
     Reply as ReplyIcon,
 } from "@mui/icons-material";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import type { CommentResponse } from "../projectManagementTypes/projectCommentsType";
 import { FormatUtcTime } from "../utils/formatUtcTime";
 import { useAppData } from "../contexts/AppDataContext";
-
-interface Reaction {
-    type: "heart" | "like";
-    memberIds: number[];
-}
-
-interface CommentWithReactions extends CommentResponse {
-    reactions?: Reaction[];
-    replies?: CommentWithReactions[];
-}
+import { commentService } from "../services/projectManagementService";
 
 interface CommentSectionProps {
     comments: CommentResponse[];
     onAddComment: (description: string, parentCommentId?: number) => Promise<void>;
+    onUpdateComment?: (commentId: number, description: string) => Promise<void>;
+    onDeleteComment?: (commentId: number) => Promise<void>;
+    onReactionToggle?: (commentId: number, reactionType: number) => Promise<void>;
     currentUserId?: number;
 }
 
-export default function CommentSection({ comments, onAddComment, currentUserId }: CommentSectionProps) {
+export default function CommentSection({ 
+    comments, 
+    onAddComment, 
+    onUpdateComment,
+    onDeleteComment,
+    onReactionToggle,
+}: CommentSectionProps) {
     const { members } = useAppData();
     const [newComment, setNewComment] = useState("");
     const [replyTo, setReplyTo] = useState<number | null>(null);
@@ -48,39 +52,18 @@ export default function CommentSection({ comments, onAddComment, currentUserId }
     const [cursorPosition, setCursorPosition] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedCommentId, setSelectedCommentId] = useState<number | null>(null);
+    const [selectedComment, setSelectedComment] = useState<CommentResponse | null>(null);
+    const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+    const [editText, setEditText] = useState("");
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null);
 
-    // State for reactions (in real app, this should come from API)
-    const [commentReactions, setCommentReactions] = useState<Map<number, Reaction[]>>(new Map());
-
-    // Convert flat comments to nested structure
-    const buildCommentTree = (comments: CommentResponse[]): CommentWithReactions[] => {
-        const commentMap = new Map<number, CommentWithReactions>();
-        const rootComments: CommentWithReactions[] = [];
-
-        // Initialize all comments
-        comments.forEach(comment => {
-            commentMap.set(comment.id, {
-                ...comment,
-                reactions: commentReactions.get(comment.id) || [],
-                replies: []
-            });
-        });
-
-        // Build tree structure
-        comments.forEach(comment => {
-            const commentNode = commentMap.get(comment.id);
-            if (!commentNode) return;
-
-            // For now, we'll treat all as root comments since parentCommentId isn't in the type
-            // In a real implementation, you'd use parentCommentId from the API
-            rootComments.push(commentNode);
-        });
-
-        return rootComments;
+    // Build comment tree (root comments are those with parentCommentId = 0 or null)
+    const buildCommentTree = (comments: CommentResponse[]): CommentResponse[] => {
+        return comments.filter(comment => !comment.parentCommentId || comment.parentCommentId === 0);
     };
 
-    const nestedComments = buildCommentTree(comments);
+    const rootComments = buildCommentTree(comments);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -125,48 +108,24 @@ export default function CommentSection({ comments, onAddComment, currentUserId }
         member.employeeName.toLowerCase().includes(mentionSearch.toLowerCase())
     );
 
-    const handleReaction = (commentId: number, reactionType: "heart" | "like") => {
-        setCommentReactions(prev => {
-            const newMap = new Map(prev);
-            const reactions = newMap.get(commentId) || [];
-            
-            const existingReaction = reactions.find(r => r.type === reactionType);
-            
-            if (existingReaction) {
-                const userIndex = existingReaction.memberIds.indexOf(currentUserId || 0);
-                if (userIndex > -1) {
-                    // Remove reaction
-                    existingReaction.memberIds.splice(userIndex, 1);
-                    if (existingReaction.memberIds.length === 0) {
-                        newMap.set(commentId, reactions.filter(r => r.type !== reactionType));
-                    }
-                } else {
-                    // Add reaction
-                    existingReaction.memberIds.push(currentUserId || 0);
-                }
-            } else {
-                // Create new reaction
-                reactions.push({
-                    type: reactionType,
-                    memberIds: [currentUserId || 0]
-                });
-                newMap.set(commentId, reactions);
-            }
-            
-            return newMap;
-        });
+    const handleReaction = async (comment: CommentResponse, reactionType: number) => {
+        if (onReactionToggle) {
+            await onReactionToggle(comment.id, reactionType);
+        }
     };
 
-    const hasUserReacted = (commentId: number, reactionType: "heart" | "like"): boolean => {
-        const reactions = commentReactions.get(commentId) || [];
-        const reaction = reactions.find(r => r.type === reactionType);
-        return reaction?.memberIds.includes(currentUserId || 0) || false;
+    const hasUserReacted = (comment: CommentResponse, reactionType: number): boolean => {
+        return comment.currentUserReaction === reactionType;
     };
 
-    const getReactionCount = (commentId: number, reactionType: "heart" | "like"): number => {
-        const reactions = commentReactions.get(commentId) || [];
-        const reaction = reactions.find(r => r.type === reactionType);
-        return reaction?.memberIds.length || 0;
+    const getReactionCount = (comment: CommentResponse, reactionType: number): number => {
+        // ReactionType: Like = 0, Love = 1
+        if (reactionType === 0) {
+            return comment.likeCount;
+        } else if (reactionType === 1) {
+            return comment.loveCount || comment.heartCount || 0;
+        }
+        return 0;
     };
 
     const handleSubmit = async () => {
@@ -176,27 +135,70 @@ export default function CommentSection({ comments, onAddComment, currentUserId }
         setReplyTo(null);
     };
 
-    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, commentId: number) => {
+    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, comment: CommentResponse) => {
         setAnchorEl(event.currentTarget);
-        setSelectedCommentId(commentId);
+        setSelectedComment(comment);
     };
 
     const handleMenuClose = () => {
         setAnchorEl(null);
-        setSelectedCommentId(null);
+        setSelectedComment(null);
     };
 
-    const renderComment = (comment: CommentWithReactions, depth: number = 0) => {
-        const heartCount = getReactionCount(comment.id, "heart");
-        const likeCount = getReactionCount(comment.id, "like");
-        const hasHeart = hasUserReacted(comment.id, "heart");
-        const hasLike = hasUserReacted(comment.id, "like");
+    const handleEditClick = () => {
+        if (selectedComment) {
+            setEditingCommentId(selectedComment.id);
+            setEditText(selectedComment.description);
+        }
+        handleMenuClose();
+    };
+
+    const handleSaveEdit = async () => {
+        if (editingCommentId && onUpdateComment) {
+            await onUpdateComment(editingCommentId, editText);
+            setEditingCommentId(null);
+            setEditText("");
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setEditingCommentId(null);
+        setEditText("");
+    };
+
+    const handleDeleteClick = () => {
+        if (selectedComment) {
+            setDeleteCommentId(selectedComment.id);
+            setOpenDeleteDialog(true);
+        }
+        handleMenuClose();
+    };
+
+    const handleConfirmDelete = async () => {
+        if (deleteCommentId && onDeleteComment) {
+            await onDeleteComment(deleteCommentId);
+            setOpenDeleteDialog(false);
+            setDeleteCommentId(null);
+        }
+    };
+
+    const handleCancelDelete = () => {
+        setOpenDeleteDialog(false);
+        setDeleteCommentId(null);
+    };
+
+    const renderComment = (comment: CommentResponse, depth: number = 0) => {
+        const loveCount = getReactionCount(comment, 1); // Love = 1
+        const likeCount = getReactionCount(comment, 0); // Like = 0
+        const hasLove = hasUserReacted(comment, 1);
+        const hasLike = hasUserReacted(comment, 0);
+        const isEditing = editingCommentId === comment.id;
 
         return (
             <Box key={comment.id} sx={{ ml: depth * 4 }}>
                 <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
                     <Avatar sx={{ width: 32, height: 32 }}>
-                        {comment.memberName.charAt(0).toUpperCase()}
+                        {comment.employeeName.charAt(0).toUpperCase()}
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
                         <Box 
@@ -208,45 +210,79 @@ export default function CommentSection({ comments, onAddComment, currentUserId }
                             }}
                         >
                             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                <Typography variant="body2" fontWeight={600} color="primary">
-                                    {comment.memberName}
-                                </Typography>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    <Typography variant="body2" fontWeight={600} color="primary">
+                                        {comment.employeeName}
+                                    </Typography>
+                                    {comment.isEdited && (
+                                        <Chip 
+                                            label="Edited" 
+                                            size="small" 
+                                            sx={{ height: 16, fontSize: "0.65rem" }} 
+                                        />
+                                    )}
+                                </Box>
                                 <IconButton 
                                     size="small" 
-                                    onClick={(e) => handleMenuOpen(e, comment.id)}
+                                    onClick={(e) => handleMenuOpen(e, comment)}
                                 >
                                     <MoreVertIcon fontSize="small" />
                                 </IconButton>
                             </Box>
                             <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
                                 {FormatUtcTime.getTimeVietnamAgoUTC(comment.createdAt)}
+                                {comment.isEdited && comment.editedAt && (
+                                    <span> • Edited {FormatUtcTime.getTimeVietnamAgoUTC(comment.editedAt)}</span>
+                                )}
                             </Typography>
-                            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                                {comment.description}
-                            </Typography>
+                            
+                            {isEditing ? (
+                                <Box sx={{ mt: 1 }}>
+                                    <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={3}
+                                        value={editText}
+                                        onChange={(e) => setEditText(e.target.value)}
+                                        size="small"
+                                    />
+                                    <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                                        <Button size="small" variant="contained" onClick={handleSaveEdit}>
+                                            Save
+                                        </Button>
+                                        <Button size="small" onClick={handleCancelEdit}>
+                                            Cancel
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            ) : (
+                                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                                    {comment.description}
+                                </Typography>
+                            )}
                         </Box>
 
                         {/* Reaction buttons and counts */}
                         <Box sx={{ display: "flex", gap: 1, mt: 0.5, alignItems: "center" }}>
-                            <Tooltip title={hasHeart ? "Remove heart" : "React with heart"}>
+                            <Tooltip title={hasLove ? "Remove love" : "React with love"}>
                                 <IconButton 
                                     size="small" 
-                                    onClick={() => handleReaction(comment.id, "heart")}
-                                    color={hasHeart ? "error" : "default"}
+                                    onClick={() => handleReaction(comment, 1)}
+                                    color={hasLove ? "error" : "default"}
                                 >
-                                    {hasHeart ? <HeartFilledIcon fontSize="small" /> : <HeartIcon fontSize="small" />}
+                                    {hasLove ? <HeartFilledIcon fontSize="small" /> : <HeartIcon fontSize="small" />}
                                 </IconButton>
                             </Tooltip>
-                            {heartCount > 0 && (
+                            {loveCount > 0 && (
                                 <Typography variant="caption" color="text.secondary">
-                                    {heartCount}
+                                    {loveCount}
                                 </Typography>
                             )}
 
                             <Tooltip title={hasLike ? "Remove like" : "React with like"}>
                                 <IconButton 
                                     size="small" 
-                                    onClick={() => handleReaction(comment.id, "like")}
+                                    onClick={() => handleReaction(comment, 0)}
                                     color={hasLike ? "primary" : "default"}
                                 >
                                     {hasLike ? <LikeFilledIcon fontSize="small" /> : <LikeIcon fontSize="small" />}
@@ -275,7 +311,7 @@ export default function CommentSection({ comments, onAddComment, currentUserId }
                                 <TextField
                                     fullWidth
                                     size="small"
-                                    placeholder={`Reply to ${comment.memberName}...`}
+                                    placeholder={`Reply to ${comment.employeeName}...`}
                                     value={newComment}
                                     onChange={handleInputChange}
                                     inputRef={inputRef}
@@ -286,7 +322,7 @@ export default function CommentSection({ comments, onAddComment, currentUserId }
                                         }
                                     }}
                                 />
-                                <Button size="small" onClick={handleSubmit}>
+                                <Button size="small" onClick={handleSubmit} disabled={!newComment.trim()}>
                                     Reply
                                 </Button>
                                 <Button size="small" onClick={() => { setReplyTo(null); setNewComment(""); }}>
@@ -381,7 +417,7 @@ export default function CommentSection({ comments, onAddComment, currentUserId }
             )}
 
             {/* Comments List */}
-            {nestedComments.map((comment) => renderComment(comment))}
+            {rootComments.map((comment) => renderComment(comment))}
 
             {comments.length === 0 && (
                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 2 }}>
@@ -395,10 +431,23 @@ export default function CommentSection({ comments, onAddComment, currentUserId }
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
             >
-                <MenuItem onClick={handleMenuClose}>Edit</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Delete</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Report</MenuItem>
+                <MenuItem onClick={handleEditClick}>Edit</MenuItem>
+                <MenuItem onClick={handleDeleteClick}>Delete</MenuItem>
             </Menu>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={openDeleteDialog} onClose={handleCancelDelete}>
+                <DialogTitle>Delete Comment</DialogTitle>
+                <DialogContent>
+                    <Typography>Are you sure you want to delete this comment? This action cannot be undone.</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelDelete}>Cancel</Button>
+                    <Button onClick={handleConfirmDelete} color="error" variant="contained">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

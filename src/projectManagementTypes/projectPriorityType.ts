@@ -5,4 +5,5 @@ export interface ProjectPriorityResponse {
     level: number;
     color: string;
     description: string;
+    entityType: string;
 }

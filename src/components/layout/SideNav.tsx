@@ -113,7 +113,7 @@ const navItems: NavItem[] = [
     // },
     {
         key: 'admin-audit-logs',
-        title: 'Activity Logs',
+        title: 'Audit Logs',
         href: '/admin-audit-logs',
         icon: ManageHistoryIcon,
         requiredPermission: Permission.VIEW_AUDIT_LOGS,

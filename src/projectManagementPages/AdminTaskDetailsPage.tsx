@@ -45,7 +45,7 @@ import {
 import type { TaskResponse, CreateOrUpdateSubTaskRequest, CreateTaskRequest, TaskDetailResponse } from "../projectManagementTypes/taskType";
 import type { CommentResponse } from "../projectManagementTypes/projectCommentsType";
 import type { ProjectActivityLog } from "../projectManagementTypes/projectActivityLogType";
-import type { ProjectResponse } from "../projectManagementTypes/projectType";
+import type { ProjectDetailsResponse, ProjectResponse } from "../projectManagementTypes/projectType";
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { useAppData } from "../contexts/AppDataContext";
 import { FormatUtcTime } from "../utils/formatUtcTime";
@@ -59,7 +59,7 @@ export default function AdminTaskDetailsPage() {
     const { priorities, statuses, members } = useAppData();
 
     const [task, setTask] = useState<TaskDetailResponse | null>(null);
-    const [project, setProject] = useState<ProjectResponse | null>(null);
+    const [project, setProject] = useState<ProjectDetailsResponse | null>(null);
     const [comments, setComments] = useState<CommentResponse[]>([]);
     const [activityLogs, setActivityLogs] = useState<ProjectActivityLog[]>([]);
     const [newComment, setNewComment] = useState<string>("");
@@ -191,10 +191,11 @@ export default function AdminTaskDetailsPage() {
         if (!id || selectedFiles.length === 0) return;
         try {
             const formData = new FormData();
+            formData.append("taskId", id);
             selectedFiles.forEach((file) => {
                 formData.append("attachments", file);
             });
-            
+
             await taskManagementService.uploadAttachmentsTask(parseInt(id), formData);
             setSnackbar({
                 open: true,
@@ -564,7 +565,7 @@ export default function AdminTaskDetailsPage() {
                                                     {attachment.fileName}
                                                 </Typography>
                                                 <Typography variant="caption" color="text.secondary">
-                                                    {attachment.fileSize} • {FormatUtcTime.formatDateTime(attachment.createdAt)}
+                                                    {attachment.fileSize} KB • {FormatUtcTime.formatDateTime(attachment.createdAt)}
                                                 </Typography>
                                             </Box>
                                         </Box>
@@ -574,7 +575,7 @@ export default function AdminTaskDetailsPage() {
                                         </Box>
                                     </Box>
                                 ))}
-                                
+
                                 {/* Upload new attachments */}
                                 <Box sx={{ mt: 2 }}>
                                     <input
@@ -596,7 +597,7 @@ export default function AdminTaskDetailsPage() {
                                                 "&:hover": { bgcolor: "action.hover" },
                                             }}
                                         >
-                                            <AttachFileIcon color="primary" />
+                                            {/* <AttachFileIcon color="primary" /> */}
                                             <Typography variant="body2" color="primary">
                                                 📎 Choose files (multiple files supported)
                                             </Typography>
@@ -766,7 +767,7 @@ export default function AdminTaskDetailsPage() {
                                             onChange={(e) => handlePriorityChange(e.target.value as number)}
                                             displayEmpty
                                         >
-                                            {priorities.map((priority) => (
+                                            {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
                                                 <MenuItem key={priority.id} value={priority.level}>
                                                     <Chip
                                                         label={priority.name}
@@ -903,7 +904,7 @@ export default function AdminTaskDetailsPage() {
                                     setSubTaskForm({ ...subTaskForm, priority: e.target.value as number })
                                 }
                             >
-                                {priorities.map((priority) => (
+                                {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
                                     <MenuItem key={priority.id} value={priority.id}>
                                         {priority.name}
                                     </MenuItem>
@@ -975,7 +976,7 @@ export default function AdminTaskDetailsPage() {
                                 label="Priority"
                                 onChange={(e) => setEditTaskForm({ ...editTaskForm, priority: Number(e.target.value) })}
                             >
-                                {priorities.map((priority) => (
+                                {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
                                     <MenuItem key={priority.id} value={priority.level}>
                                         {priority.name}
                                     </MenuItem>

@@ -704,7 +704,7 @@ export default function AdminProjectsPage() {
                                 label="Priority"
                                 onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
                             >
-                                {priorities.map((priority) => (
+                                {priorities.filter((priority) => priority.entityType === 'Project').map((priority) => (
                                     <MenuItem key={priority.id} value={priority.id}>
                                         {priority.name}
                                     </MenuItem>

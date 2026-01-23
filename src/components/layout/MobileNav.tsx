@@ -96,13 +96,7 @@ const navItems: NavItem[] = [
     //     icon: FileDownloadDoneIcon,
     //     requiredPermission: Permission.VIEW_PACKAGE_MANAGEMENT
     // },
-    // {
-    //     key: 'icons',
-    //     title: 'Icons Management',
-    //     href: '/admin-icons',
-    //     icon: Filter9PlusIcon,
-    //     requiredPermission: Permission.VIEW_ICON_MANAGEMENT
-    // },
+
     // {
     //     key: 'installation',
     //     title: 'Installation Logs',
@@ -117,13 +111,13 @@ const navItems: NavItem[] = [
     //     icon: AssessmentIcon,
     //     requiredPermission: Permission.VIEW_INSTALLATION_REPORTS
     // },
-    // {
-    //     key: 'admin-audit-logs',
-    //     title: 'Audit Logs',
-    //     href: '/admin-audit-logs',
-    //     icon: ManageHistoryIcon,
-    //     requiredPermission: Permission.VIEW_AUDIT_LOGS,
-    // },
+    {
+        key: 'admin-audit-logs',
+        title: 'Audit Logs',
+        href: '/admin-audit-logs',
+        icon: ManageHistoryIcon,
+        requiredPermission: Permission.VIEW_AUDIT_LOGS,
+    },
     {
         key: 'admin-roles',
         title: 'Role Management',
@@ -145,13 +139,13 @@ const navItems: NavItem[] = [
         icon: PeopleIcon,
         requiredPermission: Permission.VIEW_EMPLOYEE_MANAGEMENT
     },
-    // {
-    //     key: 'admin-settings',
-    //     title: 'System Settings',
-    //     href: '/admin-settings',
-    //     icon: SettingsIcon,
-    //     requiredPermission: Permission.VIEW_SYSTEM_SETTINGS
-    // },
+    {
+        key: 'admin-settings',
+        title: 'System Settings',
+        href: '/admin-settings',
+        icon: SettingsIcon,
+        requiredPermission: Permission.VIEW_SYSTEM_SETTINGS
+    },
 ];
 
 interface MobileNavProps {

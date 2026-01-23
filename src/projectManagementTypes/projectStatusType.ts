@@ -6,4 +6,5 @@ export interface ProjectStatusResponse {
     color: string;
     isActive: boolean;
     description: string;
+    entityType: string;
 }

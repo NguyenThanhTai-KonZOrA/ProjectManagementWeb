@@ -4,7 +4,7 @@ import { showSessionExpiredNotification } from "../utils/showSessionExpiredNotif
 import type { AddProjectMembersRequest, CreateProjectRequest, ProjectDetailsResponse, ProjectResponse, ProjectSummaryResponse, UpdateProjectRequest } from "../projectManagementTypes/projectType";
 import type { CreateOrUpdateSubTaskRequest, CreateTaskRequest, TaskDetailResponse, TaskResponse } from "../projectManagementTypes/taskType";
 import type { ProjectCategoryCreateOrUpdateRequest, ProjectCategoryResponse } from "../projectManagementTypes/projectCategoryType";
-import type { CommentResponse, CreateCommentRequest } from "../projectManagementTypes/projectCommentsType";
+import type { CommentReactionRequest, CommentResponse, CreateCommentRequest } from "../projectManagementTypes/projectCommentsType";
 import type { ProjectActivityLog } from "../projectManagementTypes/projectActivityLogType";
 import type { ProjectOverviewDashboardResponse } from "../projectManagementTypes/projectDashboardType";
 import {
@@ -127,8 +127,8 @@ export const projectManagementService = {
     },
 
     // Request same UploadAttachmentsProjectRequest model
-    uploadAttachmentsProject: async (id: number, formData: FormData): Promise<boolean> => {
-        const response = await api.post(`/api/project/${id}/attachments`, formData, {
+    uploadAttachmentsProject: async (_: number, formData: FormData): Promise<boolean> => {
+        const response = await api.post(`/api/project/upload/attachments`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -137,7 +137,7 @@ export const projectManagementService = {
     },
 
     addProjectMembers: async (request: AddProjectMembersRequest): Promise<void> => {
-        const response = await api.post(`/api/project/${request.projectId}/add-members`, request);
+        const response = await api.post(`/api/project/add/members`, request);
         return unwrapApiEnvelope(response);
     }
 };
@@ -166,8 +166,8 @@ export const taskManagementService = {
     },
 
     // Request same UploadAttachmentsTaskRequest model
-    uploadAttachmentsTask: async (id: number, formData: FormData): Promise<boolean> => {
-        const response = await api.post(`/api/task/${id}/attachments`, formData, {
+    uploadAttachmentsTask: async (_: number, formData: FormData): Promise<boolean> => {
+        const response = await api.post(`/api/task/upload/attachments`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -311,6 +311,16 @@ export const commentService = {
         if (useMockData()) return mockCommentService.getAllCommentsOfProject(projectId);
         const response = await api.get(`/api/Comment/project/${projectId}`);
         return unwrapApiEnvelope(response);
+    },
+
+    createReaction: async (request: CommentReactionRequest): Promise<CommentResponse> => {
+        const response = await api.post('/api/Comment/create/reaction', request);
+        return unwrapApiEnvelope(response);
+    },
+
+    deleteReaction: async (commentId: number): Promise<void> => {
+        const response = await api.post(`/api/Comment/delete/reaction/${commentId}`);
+        return unwrapApiEnvelope(response);
     }
 };
 
@@ -344,14 +354,14 @@ export const projectDashboardService = {
 
 export const projectStatusService = {
     getAllStatuses: async (): Promise<ProjectStatusResponse[]> => {
-        const response = await api.get(`/api/Status/all`);
+        const response = await api.get(`/api/Status/all/statuses`);
         return unwrapApiEnvelope(response);
     }
 };
 
 export const projectPriorityService = {
     getAllPriorities: async (): Promise<ProjectPriorityResponse[]> => {
-        const response = await api.get(`/api/Priority/all`);
+        const response = await api.get(`/api/Priority/all/priorities`);
         return unwrapApiEnvelope(response);
     }
 };
