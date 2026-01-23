@@ -739,7 +739,7 @@ export default function AdminTaskDetailsPage() {
                                             onChange={(e) => handleStatusChange(String(e.target.value))}
                                             displayEmpty
                                         >
-                                            {statuses.map((status) => (
+                                            {statuses.filter(s => s.entityType === 'Task').map((status) => (
                                                 <MenuItem key={status.id} value={status.id}>
                                                     <Chip
                                                         label={status.name}
