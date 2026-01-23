@@ -54,7 +54,7 @@ export default function AdminProjectDetailsPage() {
     useSetPageTitle("View Details");
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { priorities, members } = useAppData();
+    const { priorities, members, statuses } = useAppData();
     const [loading, setLoading] = useState<boolean>(false);
     const [project, setProject] = useState<ProjectDetailsResponse | null>(null);
     const [comments, setComments] = useState<CommentResponse[]>([]);
@@ -63,7 +63,7 @@ export default function AdminProjectDetailsPage() {
     const [categories, setCategories] = useState<ProjectCategoryResponse[]>([]);
     const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
     const [openAddMemberDialog, setOpenAddMemberDialog] = useState<boolean>(false);
-    const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+    const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const fileInputRef = useState<HTMLInputElement | null>(null)[0];
     const [snackbar, setSnackbar] = useState<{
@@ -278,19 +278,19 @@ export default function AdminProjectDetailsPage() {
     };
 
     const handleAddMember = async () => {
-        if (!selectedMemberId || !id) return;
+        if (!selectedMemberIds.length || !id) return;
         try {
             await projectManagementService.addProjectMembers({
                 projectId: parseInt(id),
-                memberIds: [selectedMemberId],
+                memberIds: selectedMemberIds,
             });
             setSnackbar({
                 open: true,
-                message: "Member added successfully",
+                message: "Member(s) added successfully",
                 severity: "success",
             });
             setOpenAddMemberDialog(false);
-            setSelectedMemberId(null);
+            setSelectedMemberIds([]);
             loadProjectDetails();
             loadActivityLogs();
         } catch (error: any) {
@@ -298,6 +298,54 @@ export default function AdminProjectDetailsPage() {
             setSnackbar({
                 open: true,
                 message: error?.response?.data?.message || "Failed to add member",
+                severity: "error",
+            });
+        }
+    };
+
+    const handleStatusChange = async (newStatusId: string) => {
+        if (!id) return;
+        try {
+            await projectManagementService.changeProjectStatus({
+                projectId: parseInt(id),
+                newStatusId,
+            });
+            setSnackbar({
+                open: true,
+                message: "Status updated successfully",
+                severity: "success",
+            });
+            loadProjectDetails();
+            loadActivityLogs();
+        } catch (error: any) {
+            console.error("Error changing status:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to change status",
+                severity: "error",
+            });
+        }
+    };
+
+    const handlePriorityChange = async (newPriorityId: number) => {
+        if (!id) return;
+        try {
+            await projectManagementService.changeProjectPriority({
+                projectId: parseInt(id),
+                newPriorityId,
+            });
+            setSnackbar({
+                open: true,
+                message: "Priority updated successfully",
+                severity: "success",
+            });
+            loadProjectDetails();
+            loadActivityLogs();
+        } catch (error: any) {
+            console.error("Error changing priority:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to change priority",
                 severity: "error",
             });
         }
@@ -353,6 +401,87 @@ export default function AdminProjectDetailsPage() {
             setSnackbar({
                 open: true,
                 message: error?.response?.data?.message || "Failed to add comment",
+                severity: "error",
+            });
+        }
+    };
+
+    const handleUpdateComment = async (commentId: number, description: string) => {
+        if (!id) return;
+        try {
+            await commentService.updateComment(commentId, {
+                projectId: parseInt(id),
+                description,
+                commentId: commentId
+            });
+            loadComments();
+            loadActivityLogs();
+            setSnackbar({
+                open: true,
+                message: "Comment updated successfully",
+                severity: "success",
+            });
+        } catch (error: any) {
+            console.error("Error updating comment:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to update comment",
+                severity: "error",
+            });
+        }
+    };
+
+    const handleDeleteComment = async (commentId: number) => {
+        try {
+            await commentService.deleteComment(commentId);
+            loadComments();
+            loadActivityLogs();
+            setSnackbar({
+                open: true,
+                message: "Comment deleted successfully",
+                severity: "success",
+            });
+        } catch (error: any) {
+            console.error("Error deleting comment:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to delete comment",
+                severity: "error",
+            });
+        }
+    };
+
+    const findCommentById = (comments: CommentResponse[], commentId: number): CommentResponse | null => {
+        for (const comment of comments) {
+            if (comment.id === commentId) return comment;
+            if (comment.replies && comment.replies.length > 0) {
+                const found = findCommentById(comment.replies, commentId);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+
+    const handleReactionToggle = async (commentId: number, reactionType: number) => {
+        try {
+            const comment = findCommentById(comments, commentId);
+            if (!comment) return;
+
+            // If user already has this reaction, delete it, otherwise create it
+            if (comment.currentUserReaction === reactionType) {
+                await commentService.deleteReaction(commentId);
+            } else {
+                await commentService.createReaction({
+                    commentId,
+                    reactionType,
+                });
+            }
+            loadComments();
+        } catch (error: any) {
+            console.error("Error toggling reaction:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to toggle reaction",
                 severity: "error",
             });
         }
@@ -544,6 +673,9 @@ export default function AdminProjectDetailsPage() {
                                 <CommentSection
                                     comments={comments}
                                     onAddComment={handleCommentSubmit}
+                                    onUpdateComment={handleUpdateComment}
+                                    onDeleteComment={handleDeleteComment}
+                                    onReactionToggle={handleReactionToggle}
                                     currentUserId={1}
                                 />
                             </CardContent>
@@ -649,9 +781,19 @@ export default function AdminProjectDetailsPage() {
                                     <Typography variant="caption" color="text.secondary">
                                         Status
                                     </Typography>
-                                    <Box sx={{ mt: 0.5 }}>
-                                        <Chip label={getStatusLabel()} size="small" color={getStatusColor()} />
-                                    </Box>
+                                    <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
+                                        <Select
+                                            value={project?.statusId?.toString() || ""}
+                                            onChange={(e) => handleStatusChange(e.target.value)}
+                                            displayEmpty
+                                        >
+                                            {statuses && statuses.filter((s: any) => s.entityType === 'Project').map((status: any) => (
+                                                <MenuItem key={status.id} value={status.id.toString()}>
+                                                    {status.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
                                 </Box>
 
                                 {/* Priority */}
@@ -659,13 +801,18 @@ export default function AdminProjectDetailsPage() {
                                     <Typography variant="caption" color="text.secondary">
                                         Priority
                                     </Typography>
-                                    <Box sx={{ mt: 0.5 }}>
-                                        <Chip
-                                            label={getPriorityLabel(project?.priority || 0)}
-                                            size="small"
-                                            color={getPriorityColor(project?.priority || 0)}
-                                        />
-                                    </Box>
+                                    <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
+                                        <Select
+                                            value={project?.priority || 1}
+                                            onChange={(e) => handlePriorityChange(Number(e.target.value))}
+                                        >
+                                            {priorities.filter(p => p.entityType === 'Project').map((priority) => (
+                                                <MenuItem key={priority.id} value={priority.id}>
+                                                    {priority.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
                                 </Box>
 
                                 {/* Start Date */}
@@ -877,37 +1024,44 @@ export default function AdminProjectDetailsPage() {
 
             {/* Add Member Dialog */}
             <Dialog open={openAddMemberDialog} onClose={() => setOpenAddMemberDialog(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Add Member to Project</DialogTitle>
+                <DialogTitle>Add Members to Project</DialogTitle>
                 <DialogContent>
-                    <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel>Select Member</InputLabel>
-                        <Select
-                            value={selectedMemberId || ""}
-                            label="Select Member"
-                            onChange={(e) => setSelectedMemberId(e.target.value as number)}
-                        >
-                            {members
-                                .filter(
-                                    (member) =>
-                                        !project?.projectMembers.some((pm) => parseInt(pm.memberId) === member.id)
-                                )
-                                .map((member) => (
-                                    <MenuItem key={member.id} value={member.id}>
-                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                            <Avatar sx={{ width: 24, height: 24 }}>
-                                                {member.employeeName.charAt(0)}
-                                            </Avatar>
-                                            {member.employeeName}
-                                        </Box>
-                                    </MenuItem>
-                                ))}
-                        </Select>
-                    </FormControl>
+                    <Autocomplete
+                        multiple
+                        options={members.filter(
+                            (member) =>
+                                !project?.projectMembers.some((pm) => parseInt(pm.memberId) === member.id)
+                        )}
+                        getOptionLabel={(option) => option.employeeName}
+                        value={members.filter((m) => selectedMemberIds.includes(m.id))}
+                        onChange={(_, value) => setSelectedMemberIds(value.map((v) => v.id))}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Select Members"
+                                placeholder="Choose members to add"
+                                sx={{ mt: 2 }}
+                            />
+                        )}
+                        renderOption={(props, option) => (
+                            <li {...props}>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    <Avatar sx={{ width: 24, height: 24 }}>
+                                        {option.employeeName.charAt(0)}
+                                    </Avatar>
+                                    {option.employeeName}
+                                </Box>
+                            </li>
+                        )}
+                    />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenAddMemberDialog(false)}>Cancel</Button>
-                    <Button onClick={handleAddMember} variant="contained" disabled={!selectedMemberId}>
-                        Add Member
+                    <Button onClick={() => {
+                        setOpenAddMemberDialog(false);
+                        setSelectedMemberIds([]);
+                    }}>Cancel</Button>
+                    <Button onClick={handleAddMember} variant="contained" disabled={selectedMemberIds.length === 0}>
+                        Add Member{selectedMemberIds.length > 1 ? 's' : ''}
                     </Button>
                 </DialogActions>
             </Dialog>

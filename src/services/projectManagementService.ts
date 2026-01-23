@@ -139,6 +139,16 @@ export const projectManagementService = {
     addProjectMembers: async (request: AddProjectMembersRequest): Promise<void> => {
         const response = await api.post(`/api/project/add/members`, request);
         return unwrapApiEnvelope(response);
+    },
+
+    changeProjectStatus: async (request: { projectId: number; newStatusId: string; }): Promise<boolean> => {
+        const response = await api.post('/api/project/change-status', request);
+        return unwrapApiEnvelope(response);
+    },
+
+    changeProjectPriority: async (request: { projectId: number; newPriorityId: number; }): Promise<boolean> => {
+        const response = await api.post('/api/project/change-priority', request);
+        return unwrapApiEnvelope(response);
     }
 };
 
@@ -279,7 +289,7 @@ export const commentService = {
 
     updateComment: async (id: number, request: CreateCommentRequest): Promise<CommentResponse> => {
         if (useMockData()) return mockCommentService.updateComment(id, request);
-        const response = await api.post(`/api/Comment/update/${id}`, request);
+        const response = await api.post(`/api/Comment/update`, request);
         return unwrapApiEnvelope(response);
     },
 

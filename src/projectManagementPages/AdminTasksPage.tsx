@@ -89,6 +89,17 @@ export default function AdminTasksPage() {
         priority: 1,
     });
 
+    const [validationErrors, setValidationErrors] = useState<{
+        projectId?: string;
+        taskTitle?: string;
+        taskType?: string;
+        description?: string;
+        assignees?: string;
+        priority?: string;
+        startDate?: string;
+        dueDate?: string;
+    }>({});
+
     const loadTasks = async () => {
         setLoading(true);
         try {
@@ -240,6 +251,7 @@ export default function AdminTasksPage() {
                 startDate: selectedTaskForMenu.startDate.split("T")[0],
                 priority: selectedTaskForMenu.priority,
             });
+            setValidationErrors({});
             setOpenDialog(true);
         }
         handleMenuClose();
@@ -325,6 +337,76 @@ export default function AdminTasksPage() {
         }).format(date);
     };
 
+    const validateField = (fieldName: keyof CreateTaskRequest, value: any): string | undefined => {
+        switch (fieldName) {
+            case 'projectId':
+                return !value || value === 0 ? 'Project is required' : undefined;
+            case 'taskTitle':
+                return !value || value.trim() === '' ? 'Task Title is required' : undefined;
+            case 'taskType':
+                return !value || value === '' ? 'Task Type is required' : undefined;
+            case 'description':
+                return !value || value.trim() === '' ? 'Description is required' : undefined;
+            case 'assignees':
+                return !value || value.length === 0 ? 'At least one Assignee is required' : undefined;
+            case 'startDate':
+                return !value ? 'Start Date is required' : undefined;
+            case 'dueDate':
+                if (!value) return 'Due Date is required';
+                if (formData.startDate && new Date(value) < new Date(formData.startDate)) {
+                    return 'Due Date must be after Start Date';
+                }
+                return undefined;
+            default:
+                return undefined;
+        }
+    };
+
+    const validateAllFields = (): boolean => {
+        const errors: any = {};
+        let isValid = true;
+
+        const fieldsToValidate: (keyof CreateTaskRequest)[] = [
+            'projectId',
+            'taskTitle',
+            'taskType',
+            'description',
+            'assignees',
+            'startDate',
+            'dueDate'
+        ];
+
+        fieldsToValidate.forEach(field => {
+            const error = validateField(field, formData[field]);
+            if (error) {
+                errors[field] = error;
+                isValid = false;
+            }
+        });
+
+        setValidationErrors(errors);
+        return isValid;
+    };
+
+    const handleFieldBlur = (fieldName: keyof CreateTaskRequest) => {
+        const error = validateField(fieldName, formData[fieldName]);
+        setValidationErrors(prev => ({
+            ...prev,
+            [fieldName]: error
+        }));
+    };
+
+    const isFormValid = (): boolean => {
+        return formData.projectId !== 0 &&
+               formData.taskTitle.trim() !== '' &&
+               formData.taskType !== '' &&
+               formData.description.trim() !== '' &&
+               formData.assignees.length > 0 &&
+               formData.startDate !== '' &&
+               formData.dueDate !== '' &&
+               !validationErrors.dueDate;
+    };
+
     const handleOpenDialog = () => {
         setEditingTask(null);
         setFormData({
@@ -338,10 +420,20 @@ export default function AdminTasksPage() {
             startDate: "",
             priority: 1,
         });
+        setValidationErrors({});
         setOpenDialog(true);
     };
 
     const handleCreateOrUpdateTask = async () => {
+        if (!validateAllFields()) {
+            setSnackbar({
+                open: true,
+                message: "Please fill in all required fields correctly",
+                severity: "error",
+            });
+            return;
+        }
+
         try {
             setLoading(true);
             const formDataToSend = new FormData();
@@ -623,12 +715,18 @@ export default function AdminTasksPage() {
                 <DialogTitle>{editingTask ? "Edit Task" : "Create New Task"}</DialogTitle>
                 <DialogContent>
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-                        <FormControl fullWidth>
+                        <FormControl fullWidth required error={!!validationErrors.projectId}>
                             <InputLabel>Project</InputLabel>
                             <Select
                                 value={formData.projectId || ""}
                                 label="Project"
-                                onChange={(e) => setFormData({ ...formData, projectId: e.target.value as number })}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, projectId: e.target.value as number });
+                                    if (validationErrors.projectId) {
+                                        setValidationErrors({ ...validationErrors, projectId: undefined });
+                                    }
+                                }}
+                                onBlur={() => handleFieldBlur('projectId')}
                             >
                                 {projectsSummary.map((project) => (
                                     <MenuItem key={project.id} value={parseInt(project.id)}>
@@ -636,21 +734,41 @@ export default function AdminTasksPage() {
                                     </MenuItem>
                                 ))}
                             </Select>
+                            {validationErrors.projectId && (
+                                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                                    {validationErrors.projectId}
+                                </Typography>
+                            )}
                         </FormControl>
 
                         <TextField
                             label="Task Title"
                             fullWidth
+                            required
                             value={formData.taskTitle}
-                            onChange={(e) => setFormData({ ...formData, taskTitle: e.target.value })}
+                            onChange={(e) => {
+                                setFormData({ ...formData, taskTitle: e.target.value });
+                                if (validationErrors.taskTitle) {
+                                    setValidationErrors({ ...validationErrors, taskTitle: undefined });
+                                }
+                            }}
+                            onBlur={() => handleFieldBlur('taskTitle')}
+                            error={!!validationErrors.taskTitle}
+                            helperText={validationErrors.taskTitle}
                         />
 
-                        <FormControl fullWidth>
+                        <FormControl fullWidth required error={!!validationErrors.taskType}>
                             <InputLabel>Task Type</InputLabel>
                             <Select
                                 value={formData.taskType}
                                 label="Task Type"
-                                onChange={(e) => setFormData({ ...formData, taskType: e.target.value })}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, taskType: e.target.value });
+                                    if (validationErrors.taskType) {
+                                        setValidationErrors({ ...validationErrors, taskType: undefined });
+                                    }
+                                }}
+                                onBlur={() => handleFieldBlur('taskType')}
                             >
                                 {TaskType.map((type) => (
                                     <MenuItem key={type.value} value={type.value}>
@@ -658,15 +776,29 @@ export default function AdminTasksPage() {
                                     </MenuItem>
                                 ))}
                             </Select>
+                            {validationErrors.taskType && (
+                                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                                    {validationErrors.taskType}
+                                </Typography>
+                            )}
                         </FormControl>
 
                         <TextField
                             label="Description"
                             fullWidth
+                            required
                             multiline
                             rows={4}
                             value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            onChange={(e) => {
+                                setFormData({ ...formData, description: e.target.value });
+                                if (validationErrors.description) {
+                                    setValidationErrors({ ...validationErrors, description: undefined });
+                                }
+                            }}
+                            onBlur={() => handleFieldBlur('description')}
+                            error={!!validationErrors.description}
+                            helperText={validationErrors.description}
                         />
 
                         <Autocomplete
@@ -674,10 +806,22 @@ export default function AdminTasksPage() {
                             options={members}
                             getOptionLabel={(option) => option.employeeName}
                             value={members.filter((emp) => formData.assignees.includes(emp.id))}
-                            onChange={(_, value) =>
-                                setFormData({ ...formData, assignees: value.map((v) => v.id) })
-                            }
-                            renderInput={(params) => <TextField {...params} label="Assignees" />}
+                            onChange={(_, value) => {
+                                setFormData({ ...formData, assignees: value.map((v) => v.id) });
+                                if (validationErrors.assignees) {
+                                    setValidationErrors({ ...validationErrors, assignees: undefined });
+                                }
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Assignees"
+                                    required
+                                    error={!!validationErrors.assignees}
+                                    helperText={validationErrors.assignees}
+                                    onBlur={() => handleFieldBlur('assignees')}
+                                />
+                            )}
                         />
 
                         <FormControl fullWidth>
@@ -700,9 +844,23 @@ export default function AdminTasksPage() {
                                 label="Start Date"
                                 type="date"
                                 fullWidth
+                                required
                                 InputLabelProps={{ shrink: true }}
                                 value={formData.startDate}
-                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, startDate: e.target.value });
+                                    if (validationErrors.startDate) {
+                                        setValidationErrors({ ...validationErrors, startDate: undefined });
+                                    }
+                                    // Re-validate due date when start date changes
+                                    if (formData.dueDate) {
+                                        const dueDateError = validateField('dueDate', formData.dueDate);
+                                        setValidationErrors(prev => ({ ...prev, dueDate: dueDateError }));
+                                    }
+                                }}
+                                onBlur={() => handleFieldBlur('startDate')}
+                                error={!!validationErrors.startDate}
+                                helperText={validationErrors.startDate}
                                 onFocus={(e) => {
                                     const input = e.target as HTMLInputElement;
                                     if (input.showPicker) {
@@ -715,9 +873,18 @@ export default function AdminTasksPage() {
                                 label="Due Date"
                                 type="date"
                                 fullWidth
+                                required
                                 InputLabelProps={{ shrink: true }}
                                 value={formData.dueDate}
-                                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, dueDate: e.target.value });
+                                    if (validationErrors.dueDate) {
+                                        setValidationErrors({ ...validationErrors, dueDate: undefined });
+                                    }
+                                }}
+                                onBlur={() => handleFieldBlur('dueDate')}
+                                error={!!validationErrors.dueDate}
+                                helperText={validationErrors.dueDate}
                                 onFocus={(e) => {
                                     const input = e.target as HTMLInputElement;
                                     if (input.showPicker) {
@@ -758,7 +925,7 @@ export default function AdminTasksPage() {
                     <Button
                         onClick={handleCreateOrUpdateTask}
                         variant="contained"
-                        disabled={!formData.projectId || !formData.taskTitle}
+                        disabled={!isFormValid() || loading}
                     >
                         {editingTask ? "Update" : "Create"}
                     </Button>

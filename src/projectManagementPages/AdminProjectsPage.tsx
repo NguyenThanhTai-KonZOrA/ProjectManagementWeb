@@ -78,6 +78,17 @@ export default function AdminProjectsPage() {
         description: "",
     });
 
+    const [validationErrors, setValidationErrors] = useState<{
+        projectName?: string;
+        projectType?: string;
+        startDate?: string;
+        endDate?: string;
+        projectMembers?: string;
+        priority?: string;
+        projectCategory?: string;
+        description?: string;
+    }>({});
+
     const loadProjects = async () => {
         setLoading(true);
         try {
@@ -178,6 +189,15 @@ export default function AdminProjectsPage() {
     };
 
     const handleCreateOrUpdate = async () => {
+        if (!validateAllFields()) {
+            setSnackbar({
+                open: true,
+                message: "Please fill in all required fields correctly",
+                severity: "error",
+            });
+            return;
+        }
+
         try {
             setLoading(true);
             if (editingProject) {
@@ -250,6 +270,72 @@ export default function AdminProjectsPage() {
         setOpenDialog(true);
     };
 
+    const validateField = (fieldName: keyof CreateProjectRequest, value: any): string | undefined => {
+        switch (fieldName) {
+            case 'projectName':
+                return !value || value.trim() === '' ? 'Project Name is required' : undefined;
+            case 'startDate':
+                return !value ? 'Start Date is required' : undefined;
+            case 'endDate':
+                if (!value) return 'End Date is required';
+                if (formData.startDate && new Date(value) < new Date(formData.startDate)) {
+                    return 'End Date must be after Start Date';
+                }
+                return undefined;
+            case 'projectMembers':
+                return !value || value.length === 0 ? 'At least one Project Member is required' : undefined;
+            case 'projectCategory':
+                return !value || value === '' ? 'Project Category is required' : undefined;
+            case 'description':
+                return !value || value.trim() === '' ? 'Description is required' : undefined;
+            default:
+                return undefined;
+        }
+    };
+
+    const validateAllFields = (): boolean => {
+        const errors: any = {};
+        let isValid = true;
+
+        const fieldsToValidate: (keyof CreateProjectRequest)[] = [
+            'projectName',
+            'startDate',
+            'endDate',
+            'projectMembers',
+            'projectCategory',
+            'description'
+        ];
+
+        fieldsToValidate.forEach(field => {
+            const error = validateField(field, formData[field]);
+            if (error) {
+                errors[field] = error;
+                isValid = false;
+            }
+        });
+
+        setValidationErrors(errors);
+        return isValid;
+    };
+
+    const handleFieldBlur = (fieldName: keyof CreateProjectRequest) => {
+        const error = validateField(fieldName, formData[fieldName]);
+        setValidationErrors(prev => ({
+            ...prev,
+            [fieldName]: error
+        }));
+    };
+
+    const isFormValid = (): boolean => {
+        return formData.projectName.trim() !== '' &&
+               formData.startDate !== '' &&
+               formData.endDate !== '' &&
+               formData.projectMembers.length > 0 &&
+               formData.projectCategory !== '' &&
+               formData.description.trim() !== '' &&
+               !validationErrors.endDate;
+    };
+
     const resetForm = () => {
         setFormData({
             projectName: "",
@@ -261,6 +347,7 @@ export default function AdminProjectsPage() {
             projectCategory: "",
             description: "",
         });
+        setValidationErrors({});
     };
 
     const handleOpenDialog = () => {
@@ -630,8 +717,17 @@ export default function AdminProjectsPage() {
                         <TextField
                             label="Project Name"
                             fullWidth
+                            required
                             value={formData.projectName}
-                            onChange={(e) => setFormData({ ...formData, projectName: e.target.value })}
+                            onChange={(e) => {
+                                setFormData({ ...formData, projectName: e.target.value });
+                                if (validationErrors.projectName) {
+                                    setValidationErrors({ ...validationErrors, projectName: undefined });
+                                }
+                            }}
+                            onBlur={() => handleFieldBlur('projectName')}
+                            error={!!validationErrors.projectName}
+                            helperText={validationErrors.projectName}
                         />
 
                         <FormControl fullWidth>
@@ -653,9 +749,23 @@ export default function AdminProjectsPage() {
                                     label="Start Date"
                                     type="date"
                                     fullWidth
+                                    required
                                     InputLabelProps={{ shrink: true }}
                                     value={formData.startDate}
-                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, startDate: e.target.value });
+                                        if (validationErrors.startDate) {
+                                            setValidationErrors({ ...validationErrors, startDate: undefined });
+                                        }
+                                        // Re-validate end date when start date changes
+                                        if (formData.endDate) {
+                                            const endDateError = validateField('endDate', formData.endDate);
+                                            setValidationErrors(prev => ({ ...prev, endDate: endDateError }));
+                                        }
+                                    }}
+                                    onBlur={() => handleFieldBlur('startDate')}
+                                    error={!!validationErrors.startDate}
+                                    helperText={validationErrors.startDate}
                                 />
                             </Box>
 
@@ -664,9 +774,18 @@ export default function AdminProjectsPage() {
                                     label="End Date"
                                     type="date"
                                     fullWidth
+                                    required
                                     InputLabelProps={{ shrink: true }}
                                     value={formData.endDate}
-                                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, endDate: e.target.value });
+                                        if (validationErrors.endDate) {
+                                            setValidationErrors({ ...validationErrors, endDate: undefined });
+                                        }
+                                    }}
+                                    onBlur={() => handleFieldBlur('endDate')}
+                                    error={!!validationErrors.endDate}
+                                    helperText={validationErrors.endDate}
                                 />
                             </Box>
                         </Box>
@@ -676,18 +795,36 @@ export default function AdminProjectsPage() {
                             options={members}
                             getOptionLabel={(option) => option.employeeName}
                             value={members.filter((emp) => formData.projectMembers.includes(emp.id))}
-                            onChange={(_, value) =>
-                                setFormData({ ...formData, projectMembers: value.map((v) => v.id) })
-                            }
-                            renderInput={(params) => <TextField {...params} label="Project Members" />}
+                            onChange={(_, value) => {
+                                setFormData({ ...formData, projectMembers: value.map((v) => v.id) });
+                                if (validationErrors.projectMembers) {
+                                    setValidationErrors({ ...validationErrors, projectMembers: undefined });
+                                }
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Project Members"
+                                    required
+                                    error={!!validationErrors.projectMembers}
+                                    helperText={validationErrors.projectMembers}
+                                    onBlur={() => handleFieldBlur('projectMembers')}
+                                />
+                            )}
                         />
 
-                        <FormControl fullWidth>
+                        <FormControl fullWidth required error={!!validationErrors.projectCategory}>
                             <InputLabel>Project Category</InputLabel>
                             <Select
                                 value={formData.projectCategory}
                                 label="Project Category"
-                                onChange={(e) => setFormData({ ...formData, projectCategory: e.target.value })}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, projectCategory: e.target.value });
+                                    if (validationErrors.projectCategory) {
+                                        setValidationErrors({ ...validationErrors, projectCategory: undefined });
+                                    }
+                                }}
+                                onBlur={() => handleFieldBlur('projectCategory')}
                             >
                                 {categories.map((cat) => (
                                     <MenuItem key={cat.id} value={cat.id}>
@@ -695,6 +832,11 @@ export default function AdminProjectsPage() {
                                     </MenuItem>
                                 ))}
                             </Select>
+                            {validationErrors.projectCategory && (
+                                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                                    {validationErrors.projectCategory}
+                                </Typography>
+                            )}
                         </FormControl>
 
                         <FormControl fullWidth>
@@ -715,10 +857,19 @@ export default function AdminProjectsPage() {
                         <TextField
                             label="Description"
                             fullWidth
+                            required
                             multiline
                             rows={4}
                             value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            onChange={(e) => {
+                                setFormData({ ...formData, description: e.target.value });
+                                if (validationErrors.description) {
+                                    setValidationErrors({ ...validationErrors, description: undefined });
+                                }
+                            }}
+                            onBlur={() => handleFieldBlur('description')}
+                            error={!!validationErrors.description}
+                            helperText={validationErrors.description}
                         />
                     </Box>
                 </DialogContent>
@@ -727,7 +878,7 @@ export default function AdminProjectsPage() {
                     <Button
                         onClick={handleCreateOrUpdate}
                         variant="contained"
-                        disabled={!formData.projectName || !formData.projectCategory}
+                        disabled={!isFormValid() || loading}
                     >
                         {editingProject ? "Update" : "Create"}
                     </Button>

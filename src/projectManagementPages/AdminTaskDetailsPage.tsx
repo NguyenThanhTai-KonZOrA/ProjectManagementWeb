@@ -180,6 +180,85 @@ export default function AdminTaskDetailsPage() {
         }
     };
 
+    const handleUpdateComment = async (commentId: number, description: string) => {
+        if (!id) return;
+        try {
+            await commentService.updateComment(commentId, {
+                taskId: parseInt(id),
+                description,
+                commentId: commentId,
+            });
+            loadTaskDetails();
+            setSnackbar({
+                open: true,
+                message: "Comment updated successfully",
+                severity: "success",
+            });
+        } catch (error: any) {
+            console.error("Error updating comment:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to update comment",
+                severity: "error",
+            });
+        }
+    };
+
+    const handleDeleteComment = async (commentId: number) => {
+        try {
+            await commentService.deleteComment(commentId);
+            loadTaskDetails();
+            setSnackbar({
+                open: true,
+                message: "Comment deleted successfully",
+                severity: "success",
+            });
+        } catch (error: any) {
+            console.error("Error deleting comment:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to delete comment",
+                severity: "error",
+            });
+        }
+    };
+
+    const findCommentById = (comments: CommentResponse[], commentId: number): CommentResponse | null => {
+        for (const comment of comments) {
+            if (comment.id === commentId) return comment;
+            if (comment.replies && comment.replies.length > 0) {
+                const found = findCommentById(comment.replies, commentId);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+
+    const handleReactionToggle = async (commentId: number, reactionType: number) => {
+        try {
+            const comment = findCommentById(comments, commentId);
+            if (!comment) return;
+
+            // If user already has this reaction, delete it, otherwise create it
+            if (comment.currentUserReaction === reactionType) {
+                await commentService.deleteReaction(commentId);
+            } else {
+                await commentService.createReaction({
+                    commentId,
+                    reactionType,
+                });
+            }
+            loadTaskDetails();
+        } catch (error: any) {
+            console.error("Error toggling reaction:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to toggle reaction",
+                severity: "error",
+            });
+        }
+    };
+
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (files) {
@@ -689,6 +768,9 @@ export default function AdminTaskDetailsPage() {
                             <CommentSection
                                 comments={comments}
                                 onAddComment={handleCommentSubmit}
+                                onUpdateComment={handleUpdateComment}
+                                onDeleteComment={handleDeleteComment}
+                                onReactionToggle={handleReactionToggle}
                                 currentUserId={1}
                             />
                         </Card>
