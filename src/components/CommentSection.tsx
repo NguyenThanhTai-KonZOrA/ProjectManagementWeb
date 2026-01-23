@@ -268,9 +268,18 @@ export default function CommentSection({
                                 <IconButton 
                                     size="small" 
                                     onClick={() => handleReaction(comment, 1)}
-                                    color={hasLove ? "error" : "default"}
+                                    sx={{
+                                        color: hasLove ? "error.main" : "action.active",
+                                        "&:hover": {
+                                            bgcolor: hasLove ? "error.lighter" : "action.hover"
+                                        }
+                                    }}
                                 >
-                                    {hasLove ? <HeartFilledIcon fontSize="small" /> : <HeartIcon fontSize="small" />}
+                                    {hasLove ? (
+                                        <HeartFilledIcon fontSize="small" sx={{ color: "error.main" }} />
+                                    ) : (
+                                        <HeartIcon fontSize="small" />
+                                    )}
                                 </IconButton>
                             </Tooltip>
                             {loveCount > 0 && (
@@ -283,9 +292,18 @@ export default function CommentSection({
                                 <IconButton 
                                     size="small" 
                                     onClick={() => handleReaction(comment, 0)}
-                                    color={hasLike ? "primary" : "default"}
+                                    sx={{
+                                        color: hasLike ? "primary.main" : "action.active",
+                                        "&:hover": {
+                                            bgcolor: hasLike ? "primary.lighter" : "action.hover"
+                                        }
+                                    }}
                                 >
-                                    {hasLike ? <LikeFilledIcon fontSize="small" /> : <LikeIcon fontSize="small" />}
+                                    {hasLike ? (
+                                        <LikeFilledIcon fontSize="small" sx={{ color: "primary.main" }} />
+                                    ) : (
+                                        <LikeIcon fontSize="small" />
+                                    )}
                                 </IconButton>
                             </Tooltip>
                             {likeCount > 0 && (

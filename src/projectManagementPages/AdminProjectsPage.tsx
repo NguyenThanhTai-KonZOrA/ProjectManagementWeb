@@ -57,7 +57,7 @@ export default function AdminProjectsPage() {
     const [categories, setCategories] = useState<ProjectCategoryResponse[]>([]);
     const [filteredProjects, setFilteredProjects] = useState<ProjectResponse[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>("All");
-    const [categoryFilter, setCategoryFilter] = useState<string>("All");
+    const [projectTypeFilter, setProjectTypeFilter] = useState<string>("All");
     const [openDialog, setOpenDialog] = useState<boolean>(false);
     const [editingProject, setEditingProject] = useState<ProjectResponse | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
@@ -121,7 +121,7 @@ export default function AdminProjectsPage() {
         loadCategories();
     }, []);
 
-    // Filter projects based on status and category
+    // Filter projects based on status and project type
     useEffect(() => {
         let filtered = projects;
 
@@ -138,12 +138,16 @@ export default function AdminProjectsPage() {
             filtered = filtered.filter((p) => getProjectStatus(p) === statusFilter);
         }
 
-        if (categoryFilter !== "All") {
-            filtered = filtered.filter((p) => p.projectType === parseInt(categoryFilter));
+        if (projectTypeFilter !== "All") {
+            filtered = filtered.filter((p) => {
+                if (projectTypeFilter === "Gaming") return p.projectType === 2;
+                if (projectTypeFilter === "NonGaming") return p.projectType === 1;
+                return true;
+            });
         }
 
         setFilteredProjects(filtered);
-    }, [searchQuery, statusFilter, categoryFilter, projects]);
+    }, [searchQuery, statusFilter, projectTypeFilter, projects]);
 
     const getProjectStatus = (project: ProjectResponse): string => {
         const completionPercentage = (project.totalTaskCompleted / project.totalTasks) * 100;
@@ -153,7 +157,6 @@ export default function AdminProjectsPage() {
     };
 
     const getDaysLeft = (timeline: string): number => {
-        debugger
         if (!timeline) return 0;
         const match = timeline.match(/(\d+)\s*Month/i);
         if (match) {
@@ -260,11 +263,11 @@ export default function AdminProjectsPage() {
         setFormData({
             projectName: project.projectName,
             projectType: project.projectType,
-            startDate: new Date().toISOString().split("T")[0], // Adjust based on actual data
-            endDate: new Date().toISOString().split("T")[0], // Adjust based on actual data
+            startDate: project.startDate.split("T")[0], // Adjust based on actual data
+            endDate: project.endDate.split("T")[0], // Adjust based on actual data
             projectMembers: project.projectMembers.map((m) => parseInt(m.memberId)),
             priority: project.priority,
-            projectCategory: project.projectCategory,
+            projectCategory: project.projectCategoryId.toString(),
             description: project.description,
         });
         setOpenDialog(true);
@@ -328,12 +331,12 @@ export default function AdminProjectsPage() {
 
     const isFormValid = (): boolean => {
         return formData.projectName.trim() !== '' &&
-               formData.startDate !== '' &&
-               formData.endDate !== '' &&
-               formData.projectMembers.length > 0 &&
-               formData.projectCategory !== '' &&
-               formData.description.trim() !== '' &&
-               !validationErrors.endDate;
+            formData.startDate !== '' &&
+            formData.endDate !== '' &&
+            formData.projectMembers.length > 0 &&
+            formData.projectCategory !== '' &&
+            formData.description.trim() !== '' &&
+            !validationErrors.endDate;
     };
 
     const resetForm = () => {
@@ -414,16 +417,16 @@ export default function AdminProjectsPage() {
                     </Box>
 
                     <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                        {/* Category Filter */}
+                        {/* Project Type Filter */}
                         <ToggleButtonGroup
-                            value={categoryFilter}
+                            value={projectTypeFilter}
                             exclusive
-                            onChange={(_, value) => value && setCategoryFilter(value)}
+                            onChange={(_, value) => value && setProjectTypeFilter(value)}
                             size="small"
                         >
                             <ToggleButton value="All">All</ToggleButton>
                             <ToggleButton value="Gaming">Gaming</ToggleButton>
-                            <ToggleButton value="Non-gaming">Non-gaming</ToggleButton>
+                            <ToggleButton value="NonGaming">Non-gaming</ToggleButton>
                         </ToggleButtonGroup>
 
                         <Button
@@ -737,8 +740,8 @@ export default function AdminProjectsPage() {
                                 label="Project Type"
                                 onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
                             >
-                                <MenuItem value={1}>Gaming</MenuItem>
-                                <MenuItem value={2}>Non-gaming</MenuItem>
+                                <MenuItem value={2}>Gaming</MenuItem>
+                                <MenuItem value={1}>Non-gaming</MenuItem>
                             </Select>
                         </FormControl>
 

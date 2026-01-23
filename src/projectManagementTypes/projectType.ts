@@ -36,17 +36,21 @@ export interface ProjectResponse {
     projectTimeLine: string;
     projectType: number;
     projectTypeName: string;
-    projectCategory: string;
+    projectCategoryId: number;
+    projectCategoryName: string;
     description: string;
     statusId: number;
     statusName: string;
+    startDate: string;
+    endDate: string;
 }
 
 export interface ProjectDetailsResponse {
     id: string;
     projectName: string;
     projectCode: string;
-    priority: number;
+    priorityId: number;
+    priorityName: string;
     comments: string[];
     projectMembers: ProjectMemberResponse[];
     attachments: ProjectAttachmentsResponse[];
@@ -62,6 +66,8 @@ export interface ProjectDetailsResponse {
     statusName: string;
     gitHubRepositoryName: string;
     gitHubUrl: string;
+    startDate: string;
+    endDate: string;
 }
 
 export interface ProjectSummaryResponse {

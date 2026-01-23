@@ -141,7 +141,7 @@ export const projectManagementService = {
         return unwrapApiEnvelope(response);
     },
 
-    changeProjectStatus: async (request: { projectId: number; newStatusId: string; }): Promise<boolean> => {
+    changeProjectStatus: async (request: { projectId: number; newStatusId: number; }): Promise<boolean> => {
         const response = await api.post('/api/project/change-status', request);
         return unwrapApiEnvelope(response);
     },

@@ -217,11 +217,11 @@ export default function AdminProjectDetailsPage() {
         setFormData({
             projectName: project.projectName,
             projectType: project.projectType,
-            startDate: new Date().toISOString().split("T")[0],
-            endDate: new Date().toISOString().split("T")[0],
+            startDate: project.startDate.split("T")[0],
+            endDate: project.endDate.split("T")[0],
             projectMembers: project.projectMembers.map((m) => parseInt(m.memberId)),
-            priority: project.priority,
-            projectCategory: project.projectCategoryName,
+            priority: project.priorityId,
+            projectCategory: project.projectCategoryId.toString(),
             description: project.description,
         });
         setOpenEditDialog(true);
@@ -303,7 +303,7 @@ export default function AdminProjectDetailsPage() {
         }
     };
 
-    const handleStatusChange = async (newStatusId: string) => {
+    const handleStatusChange = async (newStatusId: number) => {
         if (!id) return;
         try {
             await projectManagementService.changeProjectStatus({
@@ -465,18 +465,28 @@ export default function AdminProjectDetailsPage() {
     const handleReactionToggle = async (commentId: number, reactionType: number) => {
         try {
             const comment = findCommentById(comments, commentId);
-            if (!comment) return;
+            if (!comment) {
+                console.log('Comment not found:', commentId);
+                return;
+            }
+
+            console.log('Before reaction - Comment:', comment.id, 'Current reaction:', comment.currentUserReaction, 'New reaction:', reactionType);
 
             // If user already has this reaction, delete it, otherwise create it
             if (comment.currentUserReaction === reactionType) {
                 await commentService.deleteReaction(commentId);
+                console.log('Deleted reaction');
             } else {
                 await commentService.createReaction({
                     commentId,
                     reactionType,
                 });
+                console.log('Created reaction');
             }
-            loadComments();
+
+            // Reload comments to get updated data
+            await loadComments();
+            console.log('Comments reloaded');
         } catch (error: any) {
             console.error("Error toggling reaction:", error);
             setSnackbar({
@@ -783,12 +793,11 @@ export default function AdminProjectDetailsPage() {
                                     </Typography>
                                     <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
                                         <Select
-                                            value={project?.statusId?.toString() || ""}
-                                            onChange={(e) => handleStatusChange(e.target.value)}
-                                            displayEmpty
+                                            value={project?.statusId || 1}
+                                            onChange={(e) => handleStatusChange(Number(e.target.value))}
                                         >
-                                            {statuses && statuses.filter((s: any) => s.entityType === 'Project').map((status: any) => (
-                                                <MenuItem key={status.id} value={status.id.toString()}>
+                                            {statuses.filter(s => s.entityType === 'Project').map((status) => (
+                                                <MenuItem key={status.id} value={status.id}>
                                                     {status.name}
                                                 </MenuItem>
                                             ))}
@@ -803,7 +812,7 @@ export default function AdminProjectDetailsPage() {
                                     </Typography>
                                     <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
                                         <Select
-                                            value={project?.priority || 1}
+                                            value={project?.priorityId || 1}
                                             onChange={(e) => handlePriorityChange(Number(e.target.value))}
                                         >
                                             {priorities.filter(p => p.entityType === 'Project').map((priority) => (
@@ -930,8 +939,8 @@ export default function AdminProjectDetailsPage() {
                                 label="Project Type"
                                 onChange={(e) => setFormData({ ...formData, projectType: e.target.value as number })}
                             >
-                                <MenuItem value={1}>Gaming</MenuItem>
-                                <MenuItem value={2}>Non-gaming</MenuItem>
+                                <MenuItem value={2}>Gaming</MenuItem>
+                                <MenuItem value={1}>Non-gaming</MenuItem>
                             </Select>
                         </FormControl>
 

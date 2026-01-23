@@ -53,11 +53,15 @@ export const mockProjectService = {
             totalTaskCompleted: 0,
             projectTimeLine: calculateTimeline(request.startDate, request.endDate),
             projectType: request.projectType,
-            projectCategory: request.projectCategory,
             description: "" + request.description,
             projectTypeName: request.projectType === 1 ? "Internal" : "Client",
             statusId: 1,
             statusName: "Active",
+            endDate: request.endDate,
+            startDate: request.startDate,
+            projectCategoryId: 0,
+            projectCategoryName: request.projectCategory,
+            
         };
 
         projectsData.push(newProject);
@@ -94,7 +98,10 @@ export const mockProjectService = {
             })),
             projectTimeLine: calculateTimeline(request.startDate, request.endDate),
             projectType: request.projectType,
-            projectCategory: request.projectCategory,
+            comments: [...projectsData[index].comments],
+            description: "" + request.description,
+            statusId: projectsData[index].statusId,
+            statusName: projectsData[index].statusName,
         };
 
         projectsData[index] = updatedProject;
