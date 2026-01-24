@@ -54,9 +54,11 @@ import { FormatUtcTime } from "../utils/formatUtcTime";
 import CommentSection from "../components/CommentSection";
 import { PAGE_TITLES } from "../constants/pageTitles";
 import { TaskType, type CreateTaskRequest } from "../projectManagementTypes/taskType";
+import type { ProjectAttachmentsResponse } from "../projectManagementTypes/projectAttachmentsResponse";
 
 export default function AdminProjectDetailsPage() {
     useSetPageTitle(PAGE_TITLES.PROJECTDETAIL);
+    const API_BASE = (window as any)._env_?.API_BASE;
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { priorities, members, statuses } = useAppData();
@@ -681,6 +683,46 @@ export default function AdminProjectDetailsPage() {
         }
     };
 
+    const handleDeleteAttachment = async (attachmentId: number) => {
+        setLoading(true);
+        if (!attachmentId) return;
+
+        await projectManagementService.deleteAttachmentsProject(attachmentId)
+            .then(() => {
+                setSnackbar({
+                    open: true,
+                    message: "Attachment deleted successfully",
+                    severity: "success",
+                });
+            })
+            .catch((error) => {
+                console.error("Error deleting attachment:", error);
+                setSnackbar({
+                    open: true,
+                    message: error?.response?.data?.message || "Failed to delete attachment",
+                    severity: "error",
+                });
+            });
+
+        loadProjectDetails();
+        loadActivityLogs();
+        setLoading(false);
+    }
+
+    const handleDownloadAttachment = async (attachment: ProjectAttachmentsResponse) => {
+        setLoading(true);
+        if (!attachment) return;
+        let urldownload = API_BASE + attachment.fileUrl;
+        const url = window.URL.createObjectURL(new Blob([urldownload]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${attachment.fileName}${attachment.fileExtension}`);
+        document.body.appendChild(link);
+        link.click();
+        loadProjectDetails();
+        setLoading(false);
+    };
+
     return (
         <AdminLayout>
             <Snackbar
@@ -839,8 +881,8 @@ export default function AdminProjectDetailsPage() {
                                             </Box>
                                         </Box>
                                         <Box sx={{ display: "flex", gap: 1 }}>
-                                            <IconButton size="small">🗑️</IconButton>
-                                            <IconButton size="small">☁️</IconButton>
+                                            <IconButton size="small" onClick={() => handleDeleteAttachment(attachment.id)}>🗑️</IconButton>
+                                            <IconButton size="small" onClick={() => handleDownloadAttachment(attachment)}>☁️</IconButton>
                                         </Box>
                                     </Box>
                                 ))}

@@ -136,6 +136,11 @@ export const projectManagementService = {
         return unwrapApiEnvelope(response);
     },
 
+    deleteAttachmentsProject: async (attachmentId: number): Promise<void> => {
+        const response = await api.post(`/api/project/attachments/delete/${attachmentId}`);
+        return unwrapApiEnvelope(response);
+    },
+
     addProjectMembers: async (request: AddProjectMembersRequest): Promise<void> => {
         const response = await api.post(`/api/project/add/members`, request);
         return unwrapApiEnvelope(response);
@@ -182,6 +187,11 @@ export const taskManagementService = {
                 'Content-Type': 'multipart/form-data'
             }
         });
+        return unwrapApiEnvelope(response);
+    },
+
+    deleteAttachmentsTask: async (attachmentId: number): Promise<void> => {
+        const response = await api.post(`/api/task/attachments/delete/${attachmentId}`);
         return unwrapApiEnvelope(response);
     },
 

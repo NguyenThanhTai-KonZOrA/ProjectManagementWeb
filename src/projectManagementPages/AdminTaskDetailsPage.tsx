@@ -51,9 +51,11 @@ import { useAppData } from "../contexts/AppDataContext";
 import { FormatUtcTime } from "../utils/formatUtcTime";
 import { PAGE_TITLES } from "../constants/pageTitles";
 import CommentSection from "../components/CommentSection";
+import type { TaskAttachmentsResponse } from "../projectManagementTypes/taskAttachmentsType";
 
 export default function AdminTaskDetailsPage() {
     useSetPageTitle(PAGE_TITLES.TASKDETAIL);
+    const API_BASE = (window as any)._env_?.API_BASE;
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { priorities, statuses, members } = useAppData();
@@ -528,6 +530,44 @@ export default function AdminTaskDetailsPage() {
         return status ? status.color : "action.main";
     };
 
+    const handleDeleteAttachment = async (attachmentId: number) => {
+        setLoading(true);
+        if (!attachmentId) return;
+
+        await taskManagementService.deleteAttachmentsTask(attachmentId)
+            .then(() => {
+                setSnackbar({
+                    open: true,
+                    message: "Attachment deleted successfully",
+                    severity: "success",
+                });
+            })
+            .catch((error) => {
+                console.error("Error deleting attachment:", error);
+                setSnackbar({
+                    open: true,
+                    message: error?.response?.data?.message || "Failed to delete attachment",
+                    severity: "error",
+                });
+            });
+
+        loadTaskDetails();
+        setLoading(false);
+    }
+
+    const handleDownloadAttachment = async (attachment: TaskAttachmentsResponse) => {
+        setLoading(true);
+        if (!attachment) return;
+        const url = window.URL.createObjectURL(new Blob([API_BASE + attachment.fileUrl]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${attachment.fileName}`);
+        document.body.appendChild(link);
+        link.click();
+        loadTaskDetails();
+        setLoading(false);
+    };
+
     return (
         <AdminLayout>
             <Snackbar
@@ -649,8 +689,8 @@ export default function AdminTaskDetailsPage() {
                                             </Box>
                                         </Box>
                                         <Box sx={{ display: "flex", gap: 1 }}>
-                                            <IconButton size="small">🗑️</IconButton>
-                                            <IconButton size="small">☁️</IconButton>
+                                            <IconButton size="small" onClick={() => handleDeleteAttachment(attachment.id)}>🗑️</IconButton>
+                                            <IconButton size="small" onClick={() => handleDownloadAttachment(attachment)}>☁️</IconButton>
                                         </Box>
                                     </Box>
                                 ))}
