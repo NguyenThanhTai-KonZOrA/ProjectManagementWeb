@@ -294,7 +294,7 @@ export default function AdminTaskDetailsPage() {
     };
 
     const handleSubTaskClick = (subTaskId: number) => {
-        navigate(`/admin/project-management/task-detail/${subTaskId}`);
+        navigate(`/admin/project-management/tasks/${subTaskId}`);
     };
 
     const handleApprove = async () => {
@@ -746,10 +746,10 @@ export default function AdminTaskDetailsPage() {
                                             label={
                                                 <Box>
                                                     <Typography variant="body2" fontWeight={600}>
-                                                        {subTask.taskTitle}
+                                                        {subTask.taskCode}: {subTask.taskTitle}
                                                     </Typography>
                                                     <Typography variant="caption" color="text.secondary">
-                                                        Created by {subTask.createdBy} {subTask.createdAt} • Assignee: {subTask.assignee}
+                                                        Created by {subTask.createdBy} • At: {FormatUtcTime.formatDateTime(subTask.createdAt)} • Assignee: {subTask.createdBy}
                                                     </Typography>
                                                 </Box>
                                             }
@@ -802,7 +802,7 @@ export default function AdminTaskDetailsPage() {
                                     <Box sx={{ mt: 0.5 }}>
                                         <Chip
                                             icon={<span>✓</span>}
-                                            label="Task"
+                                            label={task?.parentTaskId && task.parentTaskId > 0 ? "Sub-Task" : "Task"}
                                             size="small"
                                             color="primary"
                                             variant="outlined"
@@ -993,14 +993,14 @@ export default function AdminTaskDetailsPage() {
                                 ))}
                             </Select>
                         </FormControl>
-                        <TextField
+                        {/* <TextField
                             fullWidth
                             type="date"
                             label="Start Date"
                             value={subTaskForm.startDate}
                             onChange={(e) => setSubTaskForm({ ...subTaskForm, startDate: e.target.value })}
                             InputLabelProps={{ shrink: true }}
-                        />
+                        /> */}
                         <TextField
                             fullWidth
                             type="date"
@@ -1008,6 +1008,12 @@ export default function AdminTaskDetailsPage() {
                             value={subTaskForm.dueDate}
                             onChange={(e) => setSubTaskForm({ ...subTaskForm, dueDate: e.target.value })}
                             InputLabelProps={{ shrink: true }}
+                            onFocus={(e) => {
+                                const input = e.target as HTMLInputElement;
+                                if (input.showPicker) {
+                                    input.showPicker();
+                                }
+                            }}
                         />
                     </Box>
                 </DialogContent>
@@ -1030,41 +1036,6 @@ export default function AdminTaskDetailsPage() {
                             value={editTaskForm.taskTitle}
                             onChange={(e) => setEditTaskForm({ ...editTaskForm, taskTitle: e.target.value })}
                         />
-
-                        <TextField
-                            label="Description"
-                            fullWidth
-                            multiline
-                            rows={4}
-                            value={editTaskForm.description}
-                            onChange={(e) => setEditTaskForm({ ...editTaskForm, description: e.target.value })}
-                        />
-
-                        <Autocomplete
-                            multiple
-                            options={members}
-                            getOptionLabel={(option) => option.employeeName}
-                            value={members.filter((emp) => editTaskForm.assignees.includes(emp.id))}
-                            onChange={(_, value) =>
-                                setEditTaskForm({ ...editTaskForm, assignees: value.map((v) => v.id) })
-                            }
-                            renderInput={(params) => <TextField {...params} label="Assignees" />}
-                        />
-
-                        <FormControl fullWidth>
-                            <InputLabel>Priority</InputLabel>
-                            <Select
-                                value={editTaskForm.priority}
-                                label="Priority"
-                                onChange={(e) => setEditTaskForm({ ...editTaskForm, priority: Number(e.target.value) })}
-                            >
-                                {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
-                                    <MenuItem key={priority.id} value={priority.level}>
-                                        {priority.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
 
                         <Box sx={{ display: "flex", gap: 2 }}>
                             <TextField
@@ -1098,11 +1069,48 @@ export default function AdminTaskDetailsPage() {
                             />
                         </Box>
 
+                        <Autocomplete
+                            multiple
+                            options={members}
+                            getOptionLabel={(option) => option.employeeName}
+                            value={members.filter((emp) => editTaskForm.assignees.includes(emp.id))}
+                            onChange={(_, value) =>
+                                setEditTaskForm({ ...editTaskForm, assignees: value.map((v) => v.id) })
+                            }
+                            renderInput={(params) => <TextField {...params} label="Assignees" />}
+                        />
+
+                        <FormControl fullWidth>
+                            <InputLabel>Priority</InputLabel>
+                            <Select
+                                value={editTaskForm.priority}
+                                label="Priority"
+                                onChange={(e) => setEditTaskForm({ ...editTaskForm, priority: Number(e.target.value) })}
+                            >
+                                {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
+                                    <MenuItem key={priority.id} value={priority.level}>
+                                        {priority.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+
+                        <TextField
+                            label="Description"
+                            fullWidth
+                            multiline
+                            rows={4}
+                            value={editTaskForm.description}
+                            onChange={(e) => setEditTaskForm({ ...editTaskForm, description: e.target.value })}
+                        />
+
                         <Button
                             variant="outlined"
                             component="label"
+                            size="large"
                         >
-                            Upload Attachments
+                            📎Upload Attachments
                             <input
                                 type="file"
                                 hidden

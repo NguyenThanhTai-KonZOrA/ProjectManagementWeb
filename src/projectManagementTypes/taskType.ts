@@ -65,6 +65,7 @@ export interface TaskDetailResponse {
     createdAt: string;
     updatedAt: string;
     subTasks: SubTaskResponse[];
+    parentTaskId: number;
 }
 
 export interface SubTaskResponse {
@@ -73,6 +74,7 @@ export interface SubTaskResponse {
     parentId: number;
     taskType: string;
     taskTitle: string;
+    taskCode: string;
     description: string;
     assignees: ProjectMemberResponse[];
     attachments: TaskAttachmentsResponse[];

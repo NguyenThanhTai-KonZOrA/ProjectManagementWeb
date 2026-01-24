@@ -310,7 +310,7 @@ export default function AdminProjectDashboardPage() {
                                             fill="#8884d8"
                                             dataKey="value"
                                             animationBegin={0}
-                                            animationDuration={2500}
+                                            animationDuration={1000}
                                             animationEasing="ease-out"
                                         >
                                             {[

@@ -769,6 +769,12 @@ export default function AdminProjectsPage() {
                                     onBlur={() => handleFieldBlur('startDate')}
                                     error={!!validationErrors.startDate}
                                     helperText={validationErrors.startDate}
+                                    onFocus={(e) => {
+                                        const input = e.target as HTMLInputElement;
+                                        if (input.showPicker) {
+                                            input.showPicker();
+                                        }
+                                    }}
                                 />
                             </Box>
 
@@ -789,6 +795,12 @@ export default function AdminProjectsPage() {
                                     onBlur={() => handleFieldBlur('endDate')}
                                     error={!!validationErrors.endDate}
                                     helperText={validationErrors.endDate}
+                                    onFocus={(e) => {
+                                        const input = e.target as HTMLInputElement;
+                                        if (input.showPicker) {
+                                            input.showPicker();
+                                        }
+                                    }}
                                 />
                             </Box>
                         </Box>
@@ -816,46 +828,53 @@ export default function AdminProjectsPage() {
                             )}
                         />
 
-                        <FormControl fullWidth required error={!!validationErrors.projectCategory}>
-                            <InputLabel>Project Category</InputLabel>
-                            <Select
-                                value={formData.projectCategory}
-                                label="Project Category"
-                                onChange={(e) => {
-                                    setFormData({ ...formData, projectCategory: e.target.value });
-                                    if (validationErrors.projectCategory) {
-                                        setValidationErrors({ ...validationErrors, projectCategory: undefined });
-                                    }
-                                }}
-                                onBlur={() => handleFieldBlur('projectCategory')}
-                            >
-                                {categories.map((cat) => (
-                                    <MenuItem key={cat.id} value={cat.id}>
-                                        {cat.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                            {validationErrors.projectCategory && (
-                                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
-                                    {validationErrors.projectCategory}
-                                </Typography>
-                            )}
-                        </FormControl>
+                        {/** Project Category and Priority Fields Two Column **/}
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <Box sx={{ flex: 1 }}>
+                                <FormControl fullWidth required error={!!validationErrors.projectCategory}>
+                                    <InputLabel>Project Category</InputLabel>
+                                    <Select
+                                        value={formData.projectCategory}
+                                        label="Project Category"
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, projectCategory: e.target.value });
+                                            if (validationErrors.projectCategory) {
+                                                setValidationErrors({ ...validationErrors, projectCategory: undefined });
+                                            }
+                                        }}
+                                        onBlur={() => handleFieldBlur('projectCategory')}
+                                    >
+                                        {categories.map((cat) => (
+                                            <MenuItem key={cat.id} value={cat.id}>
+                                                {cat.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    {validationErrors.projectCategory && (
+                                        <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                                            {validationErrors.projectCategory}
+                                        </Typography>
+                                    )}
+                                </FormControl>
+                            </Box>
 
-                        <FormControl fullWidth>
-                            <InputLabel>Priority</InputLabel>
-                            <Select
-                                value={formData.priority}
-                                label="Priority"
-                                onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
-                            >
-                                {priorities.filter((priority) => priority.entityType === 'Project').map((priority) => (
-                                    <MenuItem key={priority.id} value={priority.id}>
-                                        {priority.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                            <Box sx={{ flex: 1 }}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Priority</InputLabel>
+                                    <Select
+                                        value={formData.priority}
+                                        label="Priority"
+                                        onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
+                                    >
+                                        {priorities.filter((priority) => priority.entityType === 'Project').map((priority) => (
+                                            <MenuItem key={priority.id} value={priority.id}>
+                                                {priority.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                        </Box>
 
                         <TextField
                             label="Description"

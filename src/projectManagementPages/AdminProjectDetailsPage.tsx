@@ -512,6 +512,11 @@ export default function AdminProjectDetailsPage() {
         );
     }
 
+    const getChipColorByActionName = (actionName: string) => {
+        const status = statuses.find((s) => s.name.toLowerCase() === actionName.toLowerCase());
+        return status ? status.color : "action.main";
+    };
+
     return (
         <AdminLayout>
             <Snackbar
@@ -798,7 +803,15 @@ export default function AdminProjectDetailsPage() {
                                         >
                                             {statuses.filter(s => s.entityType === 'Project').map((status) => (
                                                 <MenuItem key={status.id} value={status.id}>
-                                                    {status.name}
+                                                    <Chip
+                                                        label={status.name}
+                                                        color={status.color as any}
+                                                        size="medium"
+                                                        sx={{
+                                                            bgcolor: status.color,
+                                                            color: status.color,
+                                                        }}
+                                                    />
                                                 </MenuItem>
                                             ))}
                                         </Select>
@@ -817,7 +830,15 @@ export default function AdminProjectDetailsPage() {
                                         >
                                             {priorities.filter(p => p.entityType === 'Project').map((priority) => (
                                                 <MenuItem key={priority.id} value={priority.id}>
-                                                    {priority.name}
+                                                    <Chip
+                                                        label={priority.name}
+                                                        color={priority.color as any}
+                                                        size="medium"
+                                                        sx={{
+                                                            bgcolor: priority.color,
+                                                            color: "white",
+                                                        }}
+                                                    />
                                                 </MenuItem>
                                             ))}
                                         </Select>
@@ -895,7 +916,11 @@ export default function AdminProjectDetailsPage() {
                                                 {log.memberAction}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary">
-                                                {log.actionType}
+                                                <Chip
+                                                    label={log.actionType}
+                                                    color={getChipColorByActionName(log.actionType) as any}
+                                                    size="small"
+                                                />
                                             </Typography>
                                         </Box>
                                         <Typography variant="caption" color="text.secondary" display="block">
@@ -953,6 +978,12 @@ export default function AdminProjectDetailsPage() {
                                     InputLabelProps={{ shrink: true }}
                                     value={formData.startDate}
                                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                    onFocus={(e) => {
+                                        const input = e.target as HTMLInputElement;
+                                        if (input.showPicker) {
+                                            input.showPicker();
+                                        }
+                                    }}
                                 />
                             </Box>
 
@@ -964,6 +995,12 @@ export default function AdminProjectDetailsPage() {
                                     InputLabelProps={{ shrink: true }}
                                     value={formData.endDate}
                                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                    onFocus={(e) => {
+                                        const input = e.target as HTMLInputElement;
+                                        if (input.showPicker) {
+                                            input.showPicker();
+                                        }
+                                    }}
                                 />
                             </Box>
                         </Box>
@@ -979,35 +1016,42 @@ export default function AdminProjectDetailsPage() {
                             renderInput={(params) => <TextField {...params} label="Project Members" />}
                         />
 
-                        <FormControl fullWidth>
-                            <InputLabel>Project Category</InputLabel>
-                            <Select
-                                value={formData.projectCategory}
-                                label="Project Category"
-                                onChange={(e) => setFormData({ ...formData, projectCategory: e.target.value })}
-                            >
-                                {categories.map((cat) => (
-                                    <MenuItem key={cat.id} value={cat.id}>
-                                        {cat.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        {/* Project Category and Priority */}
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <Box sx={{ flex: 1 }}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Project Category</InputLabel>
+                                    <Select
+                                        value={formData.projectCategory}
+                                        label="Project Category"
+                                        onChange={(e) => setFormData({ ...formData, projectCategory: e.target.value })}
+                                    >
+                                        {categories.map((cat) => (
+                                            <MenuItem key={cat.id} value={cat.id}>
+                                                {cat.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
 
-                        <FormControl fullWidth>
-                            <InputLabel>Priority</InputLabel>
-                            <Select
-                                value={formData.priority}
-                                label="Priority"
-                                onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
-                            >
-                                {priorities.filter((priority) => priority.entityType === 'Project').map((priority) => (
-                                    <MenuItem key={priority.id} value={priority.id}>
-                                        {priority.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                            <Box sx={{ flex: 1 }}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Priority</InputLabel>
+                                    <Select
+                                        value={formData.priority}
+                                        label="Priority"
+                                        onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
+                                    >
+                                        {priorities.filter((priority) => priority.entityType === 'Project').map((priority) => (
+                                            <MenuItem key={priority.id} value={priority.id}>
+                                                {priority.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                        </Box>
 
                         <TextField
                             label="Description"

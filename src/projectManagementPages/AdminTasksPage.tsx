@@ -398,13 +398,13 @@ export default function AdminTasksPage() {
 
     const isFormValid = (): boolean => {
         return formData.projectId !== 0 &&
-               formData.taskTitle.trim() !== '' &&
-               formData.taskType !== '' &&
-               formData.description.trim() !== '' &&
-               formData.assignees.length > 0 &&
-               formData.startDate !== '' &&
-               formData.dueDate !== '' &&
-               !validationErrors.dueDate;
+            formData.taskTitle.trim() !== '' &&
+            formData.taskType !== '' &&
+            formData.description.trim() !== '' &&
+            formData.assignees.length > 0 &&
+            formData.startDate !== '' &&
+            formData.dueDate !== '' &&
+            !validationErrors.dueDate;
     };
 
     const handleOpenDialog = () => {
@@ -757,87 +757,52 @@ export default function AdminTasksPage() {
                             helperText={validationErrors.taskTitle}
                         />
 
-                        <FormControl fullWidth required error={!!validationErrors.taskType}>
-                            <InputLabel>Task Type</InputLabel>
-                            <Select
-                                value={formData.taskType}
-                                label="Task Type"
-                                onChange={(e) => {
-                                    setFormData({ ...formData, taskType: e.target.value });
-                                    if (validationErrors.taskType) {
-                                        setValidationErrors({ ...validationErrors, taskType: undefined });
-                                    }
-                                }}
-                                onBlur={() => handleFieldBlur('taskType')}
-                            >
-                                {TaskType.map((type) => (
-                                    <MenuItem key={type.value} value={type.value}>
-                                        {type.label}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                            {validationErrors.taskType && (
-                                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
-                                    {validationErrors.taskType}
-                                </Typography>
-                            )}
-                        </FormControl>
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <Box sx={{ flex: 1 }}>
+                                <FormControl fullWidth required error={!!validationErrors.taskType}>
+                                    <InputLabel>Task Type</InputLabel>
+                                    <Select
+                                        value={formData.taskType}
+                                        label="Task Type"
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, taskType: e.target.value });
+                                            if (validationErrors.taskType) {
+                                                setValidationErrors({ ...validationErrors, taskType: undefined });
+                                            }
+                                        }}
+                                        onBlur={() => handleFieldBlur('taskType')}
+                                    >
+                                        {TaskType.map((type) => (
+                                            <MenuItem key={type.value} value={type.value}>
+                                                {type.label}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    {validationErrors.taskType && (
+                                        <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                                            {validationErrors.taskType}
+                                        </Typography>
+                                    )}
+                                </FormControl>
+                            </Box>
 
-                        <TextField
-                            label="Description"
-                            fullWidth
-                            required
-                            multiline
-                            rows={4}
-                            value={formData.description}
-                            onChange={(e) => {
-                                setFormData({ ...formData, description: e.target.value });
-                                if (validationErrors.description) {
-                                    setValidationErrors({ ...validationErrors, description: undefined });
-                                }
-                            }}
-                            onBlur={() => handleFieldBlur('description')}
-                            error={!!validationErrors.description}
-                            helperText={validationErrors.description}
-                        />
-
-                        <Autocomplete
-                            multiple
-                            options={members}
-                            getOptionLabel={(option) => option.employeeName}
-                            value={members.filter((emp) => formData.assignees.includes(emp.id))}
-                            onChange={(_, value) => {
-                                setFormData({ ...formData, assignees: value.map((v) => v.id) });
-                                if (validationErrors.assignees) {
-                                    setValidationErrors({ ...validationErrors, assignees: undefined });
-                                }
-                            }}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Assignees"
-                                    required
-                                    error={!!validationErrors.assignees}
-                                    helperText={validationErrors.assignees}
-                                    onBlur={() => handleFieldBlur('assignees')}
-                                />
-                            )}
-                        />
-
-                        <FormControl fullWidth>
-                            <InputLabel>Priority</InputLabel>
-                            <Select
-                                value={formData.priority}
-                                label="Priority"
-                                onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
-                            >
-                                {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
-                                    <MenuItem key={priority.id} value={priority.level}>
-                                        {priority.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                            <Box sx={{ flex: 1 }}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Priority</InputLabel>
+                                    <Select
+                                        value={formData.priority}
+                                        label="Priority"
+                                        onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
+                                    >
+                                        {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
+                                            <MenuItem key={priority.id} value={priority.level}>
+                                                {priority.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                        </Box>
 
                         <Box sx={{ display: "flex", gap: 2 }}>
                             <TextField
@@ -894,11 +859,55 @@ export default function AdminTasksPage() {
                             />
                         </Box>
 
+                        <Autocomplete
+                            multiple
+                            options={members}
+                            getOptionLabel={(option) => option.employeeName}
+                            value={members.filter((emp) => formData.assignees.includes(emp.id))}
+                            onChange={(_, value) => {
+                                setFormData({ ...formData, assignees: value.map((v) => v.id) });
+                                if (validationErrors.assignees) {
+                                    setValidationErrors({ ...validationErrors, assignees: undefined });
+                                }
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Assignees"
+                                    required
+                                    error={!!validationErrors.assignees}
+                                    helperText={validationErrors.assignees}
+                                    onBlur={() => handleFieldBlur('assignees')}
+                                />
+                            )}
+                        />
+
+
+
+                        <TextField
+                            label="Description"
+                            fullWidth
+                            required
+                            multiline
+                            rows={4}
+                            value={formData.description}
+                            onChange={(e) => {
+                                setFormData({ ...formData, description: e.target.value });
+                                if (validationErrors.description) {
+                                    setValidationErrors({ ...validationErrors, description: undefined });
+                                }
+                            }}
+                            onBlur={() => handleFieldBlur('description')}
+                            error={!!validationErrors.description}
+                            helperText={validationErrors.description}
+                        />
+
                         <Button
                             variant="outlined"
                             component="label"
+                            size="large"
                         >
-                            Upload Attachments
+                            📎Upload Attachments
                             <input
                                 type="file"
                                 hidden
