@@ -265,7 +265,7 @@ export default function AdminProjectsPage() {
             projectType: project.projectType,
             startDate: project.startDate.split("T")[0], // Adjust based on actual data
             endDate: project.endDate.split("T")[0], // Adjust based on actual data
-            projectMembers: project.projectMembers.map((m) => parseInt(m.memberId)),
+            projectMembers: project.projectMembers.map((m) => m.memberId),
             priority: project.priority,
             projectCategory: project.projectCategoryId.toString(),
             description: project.description,

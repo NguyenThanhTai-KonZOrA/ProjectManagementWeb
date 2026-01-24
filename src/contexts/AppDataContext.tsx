@@ -11,7 +11,7 @@ import type { ProjectPriorityResponse } from "../projectManagementTypes/projectP
 import type { ProjectStatusResponse } from "../projectManagementTypes/projectStatusType";
 
 interface AppDataContextType {
-    projectsSummary: ProjectSummaryResponse[];
+    //projectsSummary: ProjectSummaryResponse[];
     members: MemberByEmployeeResponse[];
     priorities: ProjectPriorityResponse[];
     statuses: ProjectStatusResponse[];
@@ -23,7 +23,7 @@ interface AppDataContextType {
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
 export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [projectsSummary, setProjectsSummary] = useState<ProjectSummaryResponse[]>([]);
+    //const [projectsSummary, setProjectsSummary] = useState<ProjectSummaryResponse[]>([]);
     const [members, setMembers] = useState<MemberByEmployeeResponse[]>([]);
     const [priorities, setPriorities] = useState<ProjectPriorityResponse[]>([]);
     const [statuses, setStatuses] = useState<ProjectStatusResponse[]>([]);
@@ -36,14 +36,18 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         try {
             // Load all data in parallel
-            const [projectsData, membersData, prioritiesData, statusesData] = await Promise.all([
-                projectManagementService.getProjectsSummary(),
-                projectMemberService.getAllMembers(),
-                projectPriorityService.getAllPriorities(),
-                projectStatusService.getAllStatuses(),
-            ]);
+            const [
+                //projectsData, 
+                membersData,
+                prioritiesData,
+                statusesData] = await Promise.all([
+                    //projectManagementService.getProjectsSummary(),
+                    projectMemberService.getAllMembers(),
+                    projectPriorityService.getAllPriorities(),
+                    projectStatusService.getAllStatuses(),
+                ]);
 
-            setProjectsSummary(projectsData);
+            //setProjectsSummary(projectsData);
             setMembers(membersData);
             setPriorities(prioritiesData);
             setStatuses(statusesData);
@@ -72,7 +76,7 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return (
         <AppDataContext.Provider
             value={{
-                projectsSummary,
+                //projectsSummary,
                 members,
                 priorities,
                 statuses,

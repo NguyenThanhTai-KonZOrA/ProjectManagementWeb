@@ -441,7 +441,7 @@ export default function AdminTaskDetailsPage() {
             taskType: task.taskType,
             taskTitle: task.taskTitle,
             description: task.description,
-            assignees: task.assignees.map((a) => parseInt(a.memberId)),
+            assignees: task.assignees.map((a) => a.memberId),
             attachments: [],
             dueDate: task.dueDate.split("T")[0],
             startDate: task.startDate.split("T")[0],

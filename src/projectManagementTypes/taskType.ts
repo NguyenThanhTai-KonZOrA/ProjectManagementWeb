@@ -26,6 +26,8 @@ export interface CreateTaskRequest {
 export interface TaskResponse {
     taskId: number;
     projectId: number;
+    projectType: number;
+    projectTypeName: string;
     taskType: string;
     taskTitle: string;
     taskCode: string;

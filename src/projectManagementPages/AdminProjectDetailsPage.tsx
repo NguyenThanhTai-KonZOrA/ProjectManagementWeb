@@ -31,6 +31,8 @@ import {
     ContentCopy as ContentCopyIcon,
     Add as AddIcon,
     AttachFile as AttachFileIcon,
+    MoreVert as MoreVertIcon,
+    Share as ShareIcon,
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -40,6 +42,7 @@ import {
     commentService,
     projectActivityLogService,
     projectCategoryService,
+    taskManagementService,
 } from "../services/projectManagementService";
 import type { ProjectResponse, CreateProjectRequest, ProjectDetailsResponse } from "../projectManagementTypes/projectType";
 import type { CommentResponse } from "../projectManagementTypes/projectCommentsType";
@@ -49,9 +52,11 @@ import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { useAppData } from "../contexts/AppDataContext";
 import { FormatUtcTime } from "../utils/formatUtcTime";
 import CommentSection from "../components/CommentSection";
+import { PAGE_TITLES } from "../constants/pageTitles";
+import { TaskType, type CreateTaskRequest } from "../projectManagementTypes/taskType";
 
 export default function AdminProjectDetailsPage() {
-    useSetPageTitle("View Details");
+    useSetPageTitle(PAGE_TITLES.PROJECTDETAIL);
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { priorities, members, statuses } = useAppData();
@@ -71,6 +76,30 @@ export default function AdminProjectDetailsPage() {
         message: string;
         severity: "success" | "error" | "info";
     }>({ open: false, message: "", severity: "info" });
+
+    const [openTaskDialog, setOpenTaskDialog] = useState<boolean>(false);
+    const [formTaskData, setFormTaskData] = useState<CreateTaskRequest>({
+        projectId: 0,
+        taskType: "Task",
+        taskTitle: "",
+        description: "",
+        assignees: [],
+        attachments: [],
+        dueDate: "",
+        startDate: "",
+        priority: 1,
+    });
+
+    const [validationErrors, setValidationErrors] = useState<{
+        projectId?: string;
+        taskTitle?: string;
+        taskType?: string;
+        description?: string;
+        assignees?: string;
+        priority?: string;
+        startDate?: string;
+        dueDate?: string;
+    }>({});
 
     const [formData, setFormData] = useState<CreateProjectRequest>({
         projectName: "",
@@ -219,7 +248,7 @@ export default function AdminProjectDetailsPage() {
             projectType: project.projectType,
             startDate: project.startDate.split("T")[0],
             endDate: project.endDate.split("T")[0],
-            projectMembers: project.projectMembers.map((m) => parseInt(m.memberId)),
+            projectMembers: project.projectMembers.map((m) => m.memberId),
             priority: project.priorityId,
             projectCategory: project.projectCategoryId.toString(),
             description: project.description,
@@ -517,6 +546,141 @@ export default function AdminProjectDetailsPage() {
         return status ? status.color : "action.main";
     };
 
+    const validateField = (fieldName: keyof CreateTaskRequest, value: any): string | undefined => {
+        switch (fieldName) {
+            case 'projectId':
+                return !value || value === 0 ? 'Project is required' : undefined;
+            case 'taskTitle':
+                return !value || value.trim() === '' ? 'Task Title is required' : undefined;
+            case 'taskType':
+                return !value || value === '' ? 'Task Type is required' : undefined;
+            case 'description':
+                return !value || value.trim() === '' ? 'Description is required' : undefined;
+            case 'assignees':
+                return !value || value.length === 0 ? 'At least one Assignee is required' : undefined;
+            case 'startDate':
+                return !value ? 'Start Date is required' : undefined;
+            case 'dueDate':
+                if (!value) return 'Due Date is required';
+                if (formData.startDate && new Date(value) < new Date(formData.startDate)) {
+                    return 'Due Date must be after Start Date';
+                }
+                return undefined;
+            default:
+                return undefined;
+        }
+    };
+
+    const validateAllFields = (): boolean => {
+        const errors: any = {};
+        let isValid = true;
+
+        const fieldsToValidate: (keyof CreateTaskRequest)[] = [
+            'projectId',
+            'taskTitle',
+            'taskType',
+            'description',
+            'assignees',
+            'startDate',
+            'dueDate'
+        ];
+
+        fieldsToValidate.forEach(field => {
+            const error = validateField(field, formTaskData[field]);
+            if (error) {
+                errors[field] = error;
+                isValid = false;
+            }
+        });
+
+        setValidationErrors(errors);
+        return isValid;
+    };
+
+    const handleFieldBlur = (fieldName: keyof CreateTaskRequest) => {
+        const error = validateField(fieldName, formTaskData[fieldName]);
+        setValidationErrors(prev => ({
+            ...prev,
+            [fieldName]: error
+        }));
+    };
+
+    const isFormValid = (): boolean => {
+        return formTaskData.projectId !== 0 &&
+            formTaskData.taskTitle.trim() !== '' &&
+            formTaskData.taskType !== '' &&
+            formTaskData.description.trim() !== '' &&
+            formTaskData.assignees.length > 0 &&
+            formTaskData.startDate !== '' &&
+            formTaskData.dueDate !== '' &&
+            !validationErrors.dueDate;
+    };
+
+    const handleOpenTaskDialog = () => {
+        setFormTaskData({
+            projectId: project ? parseInt(project.id) : 0,
+            taskType: "Task",
+            taskTitle: "",
+            description: "",
+            assignees: [],
+            attachments: [],
+            dueDate: "",
+            startDate: "",
+            priority: 1,
+        });
+        setValidationErrors({});
+        setOpenTaskDialog(true);
+    };
+
+    const handleCreateOrUpdateTask = async () => {
+        if (!validateAllFields()) {
+            setSnackbar({
+                open: true,
+                message: "Please fill in all required fields correctly",
+                severity: "error",
+            });
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const formDataToSend = new FormData();
+            formDataToSend.append("ProjectId", formTaskData.projectId.toString());
+            formDataToSend.append("TaskType", formTaskData.taskType);
+            formDataToSend.append("TaskTitle", formTaskData.taskTitle);
+            formDataToSend.append("Description", formTaskData.description);
+            formDataToSend.append("DueDate", formTaskData.dueDate);
+            formDataToSend.append("StartDate", formTaskData.startDate);
+            formDataToSend.append("Priority", formTaskData.priority.toString());
+
+            formTaskData.assignees.forEach((assignee) => {
+                formDataToSend.append("Assignees", assignee.toString());
+            });
+
+            formTaskData.attachments.forEach((file) => {
+                formDataToSend.append("Attachments", file);
+            });
+
+            await taskManagementService.createTask(formDataToSend);
+            setSnackbar({
+                open: true,
+                message: "Task created successfully",
+                severity: "success",
+            });
+            setOpenTaskDialog(false);
+
+        } catch (error: any) {
+            console.error("Error saving task:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to save task",
+                severity: "error",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <AdminLayout>
             <Snackbar
@@ -542,19 +706,77 @@ export default function AdminProjectDetailsPage() {
                     <IconButton onClick={() => navigate("/admin/project-management/projects")}>
                         <ArrowBackIcon />
                     </IconButton>
-                    <Typography variant="h6" fontWeight={700}>
-                        Back
-                    </Typography>
+                    <Box sx={{ flex: 1 }}>
+                        <Typography variant="h5" fontWeight={700}>
+                            {project?.projectCode}: {project?.projectName}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            Created by {project?.createdBy} • {FormatUtcTime.formatDateTime(project?.createdAt)}
+                        </Typography>
+                    </Box>
                 </Box>
 
                 <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "2fr 1fr" }, gap: 3 }}>
                     {/* Left Column - Project Details */}
                     <Box>
+                        {/* Action Buttons */}
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                            <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    startIcon={<EditIcon />}
+                                    onClick={handleOpenEditDialog}
+                                    sx={{
+                                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                    }}
+                                >
+                                    Edit Project
+                                </Button>
+
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    startIcon={<AddIcon />}
+                                    onClick={handleOpenTaskDialog}
+                                    sx={{
+                                        background: "linear-gradient(135deg, #b86f9aff 0%, #780fe0ff 100%)",
+                                    }}
+                                >
+                                    Create Task
+                                </Button>
+
+                                <Button variant="outlined" startIcon={<ShareIcon />} size="small">
+                                    Share
+                                </Button>
+                                <Button variant="outlined" size="small">
+                                    📋 Copy Link
+                                </Button>
+                                <IconButton size="small">
+                                    <MoreVertIcon />
+                                </IconButton>
+                            </Box>
+
+                            <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
+                                <Button variant="contained" size="small"
+                                    sx={{
+                                        background: "linear-gradient(to left top, #71a2ecff, #004d7a, #008793, #00bf72, #a8eb12)",
+                                    }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(`/admin-tasks?projectId=${project?.id}`);
+                                    }}
+                                >
+                                    View Tasks List
+                                </Button>
+                            </Box>
+                        </Box>
+
                         <Card sx={{ mb: 3 }}>
                             <CardContent>
                                 {/* Project Title & Edit Button */}
                                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
-                                    <Box>
+                                    {/* <Box>
                                         <Typography variant="h5" fontWeight={700} gutterBottom>
                                             {project?.projectName}
                                         </Typography>
@@ -562,8 +784,8 @@ export default function AdminProjectDetailsPage() {
                                             Created by {project?.projectMembers[0]?.memberName || "Unknown"} •{" "}
                                             {formatDate(new Date())}
                                         </Typography>
-                                    </Box>
-                                    <Button
+                                    </Box> */}
+                                    {/* <Button
                                         variant="contained"
                                         startIcon={<EditIcon />}
                                         onClick={handleOpenEditDialog}
@@ -572,7 +794,7 @@ export default function AdminProjectDetailsPage() {
                                         }}
                                     >
                                         Edit Project
-                                    </Button>
+                                    </Button> */}
                                 </Box>
 
                                 {/* Description Section */}
@@ -584,99 +806,97 @@ export default function AdminProjectDetailsPage() {
                                         {project?.description || "No description provided."}
                                     </Typography>
                                 </Box>
-
-                                <Divider sx={{ my: 2 }} />
-
-                                {/* Attachments Section */}
-                                <Box>
-                                    <Typography variant="h6" fontWeight={600} gutterBottom>
-                                        Attachments
-                                    </Typography>
-                                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                                        {project?.attachments.map((attachment) => (
-                                            <Box
-                                                key={attachment.id}
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "space-between",
-                                                    p: 1.5,
-                                                    bgcolor: "warning.lighter",
-                                                    borderRadius: 1,
-                                                }}
-                                            >
-                                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                    <AttachFileIcon fontSize="small" />
-                                                    <Box>
-                                                        <Typography variant="body2" fontWeight={600}>
-                                                            {attachment.fileName}
-                                                        </Typography>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            {attachment.fileSize} KB • {FormatUtcTime.formatDateTime(attachment.createdAt)}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                                <Box sx={{ display: "flex", gap: 1 }}>
-                                                    <IconButton size="small">🗑️</IconButton>
-                                                    <IconButton size="small">☁️</IconButton>
-                                                </Box>
-                                            </Box>
-                                        ))}
-                                    </Box>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        style={{ display: "none" }}
-                                        id="attachment-upload"
-                                        onChange={handleFileSelect}
-                                    />
-                                    <label htmlFor="attachment-upload">
-                                        <Box
-                                            sx={{
-                                                border: "2px dashed",
-                                                borderColor: "primary.main",
-                                                borderRadius: 2,
-                                                p: 3,
-                                                textAlign: "center",
-                                                cursor: "pointer",
-                                                "&:hover": { bgcolor: "action.hover" },
-                                            }}
-                                        >
-                                            {/* <AttachFileIcon color="primary" /> */}
-                                            <Typography variant="body2" color="primary">
-                                                📎 Choose files (multiple files supported)
-                                            </Typography>
-                                        </Box>
-                                    </label>
-                                    {selectedFiles.length > 0 && (
-                                        <Box sx={{ mt: 2 }}>
-                                            <Typography variant="body2" fontWeight={600} gutterBottom>
-                                                Selected files: {selectedFiles.length}
-                                            </Typography>
-                                            {selectedFiles.map((file, index) => (
-                                                <Chip
-                                                    key={index}
-                                                    label={file.name}
-                                                    size="small"
-                                                    sx={{ mr: 1, mb: 1 }}
-                                                    onDelete={() => {
-                                                        setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
-                                                    }}
-                                                />
-                                            ))}
-                                            <Box sx={{ mt: 1 }}>
-                                                <Button
-                                                    variant="contained"
-                                                    size="small"
-                                                    onClick={handleUploadAttachments}
-                                                >
-                                                    Upload Files
-                                                </Button>
-                                            </Box>
-                                        </Box>
-                                    )}
-                                </Box>
                             </CardContent>
+                        </Card>
+
+                        {/* Attachments Section */}
+                        <Card sx={{ p: 3, mb: 3 }}>
+                            <Typography variant="h6" fontWeight={600} gutterBottom>
+                                Attachments
+                            </Typography>
+                            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                {project?.attachments.map((attachment) => (
+                                    <Box
+                                        key={attachment.id}
+                                        sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            p: 1.5,
+                                            bgcolor: "warning.lighter",
+                                            borderRadius: 1,
+                                        }}
+                                    >
+                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                            <AttachFileIcon fontSize="small" />
+                                            <Box>
+                                                <Typography variant="body2" fontWeight={600}>
+                                                    {attachment.fileName}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {attachment.fileSize} KB • {FormatUtcTime.formatDateTime(attachment.createdAt)}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        <Box sx={{ display: "flex", gap: 1 }}>
+                                            <IconButton size="small">🗑️</IconButton>
+                                            <IconButton size="small">☁️</IconButton>
+                                        </Box>
+                                    </Box>
+                                ))}
+                            </Box>
+                            <input
+                                type="file"
+                                multiple
+                                style={{ display: "none" }}
+                                id="attachment-upload"
+                                onChange={handleFileSelect}
+                            />
+                            <label htmlFor="attachment-upload">
+                                <Box
+                                    sx={{
+                                        border: "2px dashed",
+                                        borderColor: "primary.main",
+                                        borderRadius: 2,
+                                        p: 3,
+                                        textAlign: "center",
+                                        cursor: "pointer",
+                                        "&:hover": { bgcolor: "action.hover" },
+                                    }}
+                                >
+                                    {/* <AttachFileIcon color="primary" /> */}
+                                    <Typography variant="body2" color="primary">
+                                        📎 Choose files (multiple files supported)
+                                    </Typography>
+                                </Box>
+                            </label>
+                            {selectedFiles.length > 0 && (
+                                <Box sx={{ mt: 2 }}>
+                                    <Typography variant="body2" fontWeight={600} gutterBottom>
+                                        Selected files: {selectedFiles.length}
+                                    </Typography>
+                                    {selectedFiles.map((file, index) => (
+                                        <Chip
+                                            key={index}
+                                            label={file.name}
+                                            size="small"
+                                            sx={{ mr: 1, mb: 1 }}
+                                            onDelete={() => {
+                                                setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+                                            }}
+                                        />
+                                    ))}
+                                    <Box sx={{ mt: 1 }}>
+                                        <Button
+                                            variant="contained"
+                                            size="small"
+                                            onClick={handleUploadAttachments}
+                                        >
+                                            Upload Files
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            )}
                         </Card>
 
                         {/* Comment Section */}
@@ -1083,7 +1303,7 @@ export default function AdminProjectDetailsPage() {
                         multiple
                         options={members.filter(
                             (member) =>
-                                !project?.projectMembers.some((pm) => parseInt(pm.memberId) === member.id)
+                                !project?.projectMembers.some((pm) => pm.memberId === member.id)
                         )}
                         getOptionLabel={(option) => option.employeeName}
                         value={members.filter((m) => selectedMemberIds.includes(m.id))}
@@ -1118,6 +1338,235 @@ export default function AdminProjectDetailsPage() {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </AdminLayout>
+
+            {/* Create/Edit Task Dialog */}
+            <Dialog open={openTaskDialog} onClose={() => setOpenTaskDialog(false)} maxWidth="md" fullWidth>
+                <DialogTitle>Create New Task</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+                        <FormControl fullWidth required error={!!validationErrors.projectId}>
+                            <InputLabel>Project</InputLabel>
+                            <Select
+                                value={formTaskData.projectId || ""}
+                                label="Project"
+                                onChange={(e) => {
+                                    setFormTaskData({ ...formTaskData, projectId: e.target.value as number });
+                                    if (validationErrors.projectId) {
+                                        setValidationErrors({ ...validationErrors, projectId: undefined });
+                                    }
+                                }}
+                                onBlur={() => handleFieldBlur('projectId')}
+                            >
+                                <MenuItem value={project?.id ? Number(project.id) : ""}>
+                                    <em>{project?.projectName || "None"}</em>
+                                </MenuItem>
+                            </Select>
+                            {validationErrors.projectId && (
+                                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                                    {validationErrors.projectId}
+                                </Typography>
+                            )}
+                        </FormControl>
+
+                        <TextField
+                            label="Task Title"
+                            fullWidth
+                            required
+                            value={formTaskData.taskTitle}
+                            onChange={(e) => {
+                                setFormTaskData({ ...formTaskData, taskTitle: e.target.value });
+                                if (validationErrors.taskTitle) {
+                                    setValidationErrors({ ...validationErrors, taskTitle: undefined });
+                                }
+                            }}
+                            onBlur={() => handleFieldBlur('taskTitle')}
+                            error={!!validationErrors.taskTitle}
+                            helperText={validationErrors.taskTitle}
+                        />
+
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <Box sx={{ flex: 1 }}>
+                                <FormControl fullWidth required error={!!validationErrors.taskType}>
+                                    <InputLabel>Task Type</InputLabel>
+                                    <Select
+                                        value={formTaskData.taskType}
+                                        label="Task Type"
+                                        onChange={(e) => {
+                                            setFormTaskData({ ...formTaskData, taskType: e.target.value });
+                                            if (validationErrors.taskType) {
+                                                setValidationErrors({ ...validationErrors, taskType: undefined });
+                                            }
+                                        }}
+                                        onBlur={() => handleFieldBlur('taskType')}
+                                    >
+                                        {TaskType.map((type) => (
+                                            <MenuItem key={type.value} value={type.value}>
+                                                {type.label}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    {validationErrors.taskType && (
+                                        <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                                            {validationErrors.taskType}
+                                        </Typography>
+                                    )}
+                                </FormControl>
+                            </Box>
+
+                            <Box sx={{ flex: 1 }}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Priority</InputLabel>
+                                    <Select
+                                        value={formData.priority}
+                                        label="Priority"
+                                        onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
+                                    >
+                                        {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
+                                            <MenuItem key={priority.id} value={priority.level}>
+                                                {priority.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                        </Box>
+
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <TextField
+                                label="Start Date"
+                                type="date"
+                                fullWidth
+                                required
+                                InputLabelProps={{ shrink: true }}
+                                value={formTaskData.startDate}
+                                onChange={(e) => {
+                                    setFormTaskData({ ...formTaskData, startDate: e.target.value });
+                                    if (validationErrors.startDate) {
+                                        setValidationErrors({ ...validationErrors, startDate: undefined });
+                                    }
+                                    // Re-validate due date when start date changes
+                                    if (formTaskData.dueDate) {
+                                        const dueDateError = validateField('dueDate', formTaskData.dueDate);
+                                        setValidationErrors(prev => ({ ...prev, dueDate: dueDateError }));
+                                    }
+                                }}
+                                onBlur={() => handleFieldBlur('startDate')}
+                                error={!!validationErrors.startDate}
+                                helperText={validationErrors.startDate}
+                                onFocus={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                    if (input.showPicker) {
+                                        input.showPicker();
+                                    }
+                                }}
+                            />
+
+                            <TextField
+                                label="Due Date"
+                                type="date"
+                                fullWidth
+                                required
+                                InputLabelProps={{ shrink: true }}
+                                value={formTaskData.dueDate}
+                                onChange={(e) => {
+                                    setFormTaskData({ ...formTaskData, dueDate: e.target.value });
+                                    if (validationErrors.dueDate) {
+                                        setValidationErrors({ ...validationErrors, dueDate: undefined });
+                                    }
+                                }}
+                                onBlur={() => handleFieldBlur('dueDate')}
+                                error={!!validationErrors.dueDate}
+                                helperText={validationErrors.dueDate}
+                                onFocus={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                    if (input.showPicker) {
+                                        input.showPicker();
+                                    }
+                                }}
+                            />
+                        </Box>
+
+                        <Autocomplete
+                            multiple
+                            options={members}
+                            getOptionLabel={(option) => option.employeeName}
+                            value={members.filter((emp) => formTaskData.assignees.includes(emp.id))}
+                            onChange={(_, value) => {
+                                setFormTaskData({ ...formTaskData, assignees: value.map((v) => v.id) });
+                                if (validationErrors.assignees) {
+                                    setValidationErrors({ ...validationErrors, assignees: undefined });
+                                }
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Assignees"
+                                    required
+                                    error={!!validationErrors.assignees}
+                                    helperText={validationErrors.assignees}
+                                    onBlur={() => handleFieldBlur('assignees')}
+                                />
+                            )}
+                        />
+
+
+
+                        <TextField
+                            label="Description"
+                            fullWidth
+                            required
+                            multiline
+                            rows={4}
+                            value={formTaskData.description}
+                            onChange={(e) => {
+                                setFormTaskData({ ...formTaskData, description: e.target.value });
+                                if (validationErrors.description) {
+                                    setValidationErrors({ ...validationErrors, description: undefined });
+                                }
+                            }}
+                            onBlur={() => handleFieldBlur('description')}
+                            error={!!validationErrors.description}
+                            helperText={validationErrors.description}
+                        />
+
+                        <Button
+                            variant="outlined"
+                            component="label"
+                            size="large"
+                        >
+                            📎Upload Attachments
+                            <input
+                                type="file"
+                                hidden
+                                multiple
+                                onChange={(e) => {
+                                    if (e.target.files) {
+                                        setFormTaskData({
+                                            ...formTaskData,
+                                            attachments: Array.from(e.target.files)
+                                        });
+                                    }
+                                }}
+                            />
+                        </Button>
+                        {formTaskData.attachments.length > 0 && (
+                            <Typography variant="caption" color="text.secondary">
+                                {formTaskData.attachments.length} file(s) selected
+                            </Typography>
+                        )}
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenTaskDialog(false)}>Cancel</Button>
+                    <Button
+                        onClick={handleCreateOrUpdateTask}
+                        variant="contained"
+                        disabled={!isFormValid() || loading}
+                    >
+                        {"Create"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </AdminLayout >
     );
 }

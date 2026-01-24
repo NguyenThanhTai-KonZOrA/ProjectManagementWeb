@@ -68,6 +68,9 @@ export interface ProjectDetailsResponse {
     gitHubUrl: string;
     startDate: string;
     endDate: string;
+    createdAt: string;
+    updatedAt: string;
+    createdBy: string;
 }
 
 export interface ProjectSummaryResponse {

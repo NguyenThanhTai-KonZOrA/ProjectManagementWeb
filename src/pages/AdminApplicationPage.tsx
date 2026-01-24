@@ -1056,7 +1056,6 @@ export default function AdminApplicationPage() {
         try {
             setToggleLoading(applicationId);
             const result = await applicationService.changeStatusApplication(applicationId);
-            debugger;
             if (result) {
                 showSnackbar(`Change Status for Application ${applicationId} Success!`, "success");
                 await loadApplications(); // Don't reset pagination when toggling application

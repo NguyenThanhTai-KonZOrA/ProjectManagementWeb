@@ -222,17 +222,13 @@ export default function AdminProjectDashboardPage() {
                                                     <ListItemText
                                                         primary={
                                                             <Typography variant="body2" fontWeight={600}>
-                                                                {new Date(item.date).toLocaleDateString('en-US', {
-                                                                    year: 'numeric',
-                                                                    month: 'long',
-                                                                    day: 'numeric'
-                                                                })}
+                                                                Due date: {FormatUtcTime.formatDateWithoutTime(item.dueDate)}
                                                             </Typography>
                                                         }
                                                         secondary={
                                                             <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
                                                                 <Typography variant="body2">
-                                                                    <strong>Project:</strong> {item.projectName}
+                                                                    <strong>Project Name:</strong> {item.projectName}
                                                                 </Typography>
                                                                 <Chip
                                                                     label={`Completed: ${item.completedTasks}`}

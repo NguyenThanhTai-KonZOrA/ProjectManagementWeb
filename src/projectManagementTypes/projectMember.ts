@@ -1,5 +1,5 @@
 export interface ProjectMemberResponse {
-    memberId: string;
+    memberId: number;
     memberName: string;
     memberImage: string;
 }

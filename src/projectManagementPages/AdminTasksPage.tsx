@@ -46,7 +46,7 @@ import {
     projectManagementService,
 } from "../services/projectManagementService";
 import { type TaskResponse, type CreateTaskRequest, TaskType } from "../projectManagementTypes/taskType";
-import type { ProjectResponse } from "../projectManagementTypes/projectType";
+import type { ProjectResponse, ProjectSummaryResponse } from "../projectManagementTypes/projectType";
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { useAppData } from "../contexts/AppDataContext";
 
@@ -54,7 +54,7 @@ export default function AdminTasksPage() {
     useSetPageTitle("Task Management");
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { projectsSummary, members, priorities } = useAppData();
+    const { members, priorities, statuses } = useAppData();
 
     const [loading, setLoading] = useState<boolean>(false);
     const [tasks, setTasks] = useState<TaskResponse[]>([]);
@@ -71,6 +71,7 @@ export default function AdminTasksPage() {
     const [selectedTaskForMenu, setSelectedTaskForMenu] = useState<TaskResponse | null>(null);
     const [openDialog, setOpenDialog] = useState<boolean>(false);
     const [editingTask, setEditingTask] = useState<TaskResponse | null>(null);
+    const [projectsSummary, setProjectsSummary] = useState<ProjectSummaryResponse[]>([]);
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -118,10 +119,10 @@ export default function AdminTasksPage() {
         }
     };
 
-    const loadProjects = async () => {
+    const loadSummaryProjects = async () => {
         try {
-            const data = await projectManagementService.getAllProjects();
-            setProjects(data);
+            const data = await projectManagementService.getProjectsSummary();
+            setProjectsSummary(data);
         } catch (error: any) {
             console.error("Error loading projects:", error);
         }
@@ -129,7 +130,7 @@ export default function AdminTasksPage() {
 
     useEffect(() => {
         loadTasks();
-        //loadProjects();
+        loadSummaryProjects();
     }, []);
 
     // Apply filters
@@ -152,22 +153,20 @@ export default function AdminTasksPage() {
 
         // Status filter
         if (statusFilter !== "All") {
-            filtered = filtered.filter((task) => getTaskStatus(task) === statusFilter);
+            filtered = filtered.filter((task) => task.statusId === parseInt(statusFilter));
         }
 
         // Project type filter
         if (projectTypeFilter !== "All") {
             filtered = filtered.filter((task) => {
-                const project = projects.find((p) => parseInt(p.id) === task.projectId);
-                const typeValue = projectTypeFilter === "Gaming" ? 1 : 2;
-                return project?.projectType === typeValue;
+                return task?.projectTypeName === projectTypeFilter;
             });
         }
 
         // Assignee filter
         if (assigneeFilter !== "All") {
             filtered = filtered.filter((task) =>
-                task.assignees.some((assignee) => assignee.memberId === assigneeFilter)
+                task.assignees.some((assignee) => assignee.memberId === parseInt(assigneeFilter))
             );
         }
 
@@ -245,7 +244,7 @@ export default function AdminTasksPage() {
                 taskType: selectedTaskForMenu.taskType,
                 taskTitle: selectedTaskForMenu.taskTitle,
                 description: selectedTaskForMenu.description,
-                assignees: selectedTaskForMenu.assignees.map((a) => parseInt(a.memberId)),
+                assignees: selectedTaskForMenu.assignees.map((a) => a.memberId),
                 attachments: [],
                 dueDate: selectedTaskForMenu.dueDate.split("T")[0],
                 startDate: selectedTaskForMenu.startDate.split("T")[0],
@@ -544,7 +543,7 @@ export default function AdminTasksPage() {
                             >
                                 <MenuItem value="All">All</MenuItem>
                                 <MenuItem value="Gaming">Gaming</MenuItem>
-                                <MenuItem value="Non-Gaming">Non-Gaming</MenuItem>
+                                <MenuItem value="NonGaming">Non-Gaming</MenuItem>
                             </Select>
                         </FormControl>
 
@@ -570,10 +569,11 @@ export default function AdminTasksPage() {
                             <InputLabel>Status</InputLabel>
                             <Select value={statusFilter} label="Status" onChange={(e) => setStatusFilter(e.target.value)}>
                                 <MenuItem value="All">All</MenuItem>
-                                <MenuItem value="In Progress">In Progress</MenuItem>
-                                <MenuItem value="New">New</MenuItem>
-                                <MenuItem value="Completed">Completed</MenuItem>
-                                <MenuItem value="Rejected">Rejected</MenuItem>
+                                {statuses.filter((status) => status.entityType === 'Task').map((status) => (
+                                    <MenuItem key={status.id} value={status.id}>
+                                        {status.name}
+                                    </MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
 

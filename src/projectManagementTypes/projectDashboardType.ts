@@ -11,6 +11,7 @@ export interface ProjectOverviewDashboardResponse {
 
 export interface TimelineDataPoint {
     date: string;
+    dueDate: string;
     completedTasks: number;
     projectId: number;
     projectName: string;

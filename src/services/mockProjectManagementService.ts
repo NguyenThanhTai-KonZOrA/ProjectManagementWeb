@@ -41,14 +41,7 @@ export const mockProjectService = {
             projectCode: `PRJ-${String(getNextId(projectsData)).padStart(3, '0')}`,
             priority: request.priority,
             comments: [],
-            projectMembers: request.projectMembers.map(memberId => {
-                // Mock member data - in real app, fetch from employee service
-                return {
-                    memberId: memberId.toString(),
-                    memberName: `Member ${memberId}`,
-                    memberImage: `https://i.pravatar.cc/150?img=${memberId}`,
-                };
-            }),
+            projectMembers: [],
             totalTasks: 0,
             totalTaskCompleted: 0,
             projectTimeLine: calculateTimeline(request.startDate, request.endDate),
@@ -61,7 +54,7 @@ export const mockProjectService = {
             startDate: request.startDate,
             projectCategoryId: 0,
             projectCategoryName: request.projectCategory,
-            
+
         };
 
         projectsData.push(newProject);
@@ -91,11 +84,7 @@ export const mockProjectService = {
             ...projectsData[index],
             projectName: request.projectName,
             priority: request.priority,
-            projectMembers: request.projectMembers.map(memberId => ({
-                memberId: memberId.toString(),
-                memberName: `Member ${memberId}`,
-                memberImage: `https://i.pravatar.cc/150?img=${memberId}`,
-            })),
+            projectMembers: [],
             projectTimeLine: calculateTimeline(request.startDate, request.endDate),
             projectType: request.projectType,
             comments: [...projectsData[index].comments],
@@ -169,11 +158,6 @@ export const mockTaskService = {
             taskTitle: request.taskTitle,
             taskCode: `TASK-${String(getNextId(tasksData)).padStart(3, '0')}`,
             description: request.description,
-            assignees: request.assignees.map(memberId => ({
-                memberId: memberId.toString(),
-                memberName: `Member ${memberId}`,
-                memberImage: `https://i.pravatar.cc/150?img=${memberId}`,
-            })),
             attachments: [],
             dueDate: request.dueDate,
             startDate: request.startDate,
@@ -185,6 +169,9 @@ export const mockTaskService = {
             priorityColor: '',
             priorityName: '',
             statusColor: '',
+            projectType: 0,
+            projectTypeName: "Client",
+            assignees: []
         };
 
         tasksData.push(newTask);
@@ -211,11 +198,7 @@ export const mockTaskService = {
             taskType: request.taskType,
             taskTitle: request.taskTitle,
             description: request.description,
-            assignees: request.assignees.map(memberId => ({
-                memberId: memberId.toString(),
-                memberName: `Member ${memberId}`,
-                memberImage: `https://i.pravatar.cc/150?img=${memberId}`,
-            })),
+
             dueDate: request.dueDate,
             startDate: request.startDate,
             priority: request.priority,
