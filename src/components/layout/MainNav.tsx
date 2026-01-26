@@ -33,6 +33,7 @@ export function MainNav(): React.JSX.Element {
     const [openNav, setOpenNav] = useState<boolean>(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [showCacheManager, setShowCacheManager] = useState<boolean>(false);
+    const [userLoggedIn, setUserLoggedIn] = useState<string>(localStorage.getItem('user') || ''); // Placeholder for user login state
     const open = Boolean(anchorEl);
     const navigate = useNavigate();
     const { logout } = useAuth();
@@ -133,11 +134,11 @@ export function MainNav(): React.JSX.Element {
                                     cursor: 'pointer',
                                     flexGrow: 1,
                                     textAlign: 'center',
-                                    fontWeight: 700,
+                                    fontWeight: 650,
                                     fontSize: '1.2rem',
                                 }}
                             >
-                                Hi! TAI.NGUYEN
+                                Hi! {userLoggedIn}
                             </Typography>
                         </Stack>
                     </Stack>
