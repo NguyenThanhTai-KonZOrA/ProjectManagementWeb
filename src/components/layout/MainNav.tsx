@@ -127,19 +127,18 @@ export function MainNav(): React.JSX.Element {
                         <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
                             <NotificationBell />
 
-                            <Tooltip title="Profile & Settings">
-                                <Avatar
-                                    onClick={handleClick}
-                                    sx={{
-                                        cursor: 'pointer',
-                                        width: 40,
-                                        height: 40,
-                                        bgcolor: '#667eea'
-                                    }}
-                                >
-                                    Hi!
-                                </Avatar>
-                            </Tooltip>
+                            <Typography
+                                onClick={handleClick}
+                                sx={{
+                                    cursor: 'pointer',
+                                    flexGrow: 1,
+                                    textAlign: 'center',
+                                    fontWeight: 700,
+                                    fontSize: '1.2rem',
+                                }}
+                            >
+                                Hi! TAI.NGUYEN
+                            </Typography>
                         </Stack>
                     </Stack>
                 </Toolbar>

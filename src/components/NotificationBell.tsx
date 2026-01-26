@@ -13,7 +13,7 @@ import {
     CircularProgress,
 } from '@mui/material';
 import {
-    Notifications as NotificationsIcon,
+    NotificationsActiveTwoTone as NotificationsIcon,
     Circle as CircleIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
