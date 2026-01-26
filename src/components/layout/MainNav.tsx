@@ -19,6 +19,7 @@ import {
     MenuOpen as MenuOpenIcon,
     Logout as LogoutIcon,
     ClearAll as ClearAllIcon,
+    Person as PersonIcon,
 } from '@mui/icons-material';
 import { MobileNav } from './MobileNav';
 import { useNavigate } from "react-router-dom";
@@ -26,6 +27,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { usePageTitle } from "../../contexts/PageTitleContext";
 import { useSidebar } from "../../contexts/SidebarContext";
 import CacheManager from '../CacheManager';
+import { NotificationBell } from '../NotificationBell';
 
 export function MainNav(): React.JSX.Element {
     const [openNav, setOpenNav] = useState<boolean>(false);
@@ -121,7 +123,10 @@ export function MainNav(): React.JSX.Element {
                             </Typography>
                         </Stack>
 
+                        {/* Notification Bell */}
                         <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
+                            <NotificationBell />
+
                             <Tooltip title="Profile & Settings">
                                 <Avatar
                                     onClick={handleClick}
@@ -156,6 +161,15 @@ export function MainNav(): React.JSX.Element {
                     },
                 }}
             >
+                <MenuItem onClick={() => {
+                    navigate('/profile');
+                    handleClose();
+                }}>
+                    <ListItemIcon>
+                        <PersonIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Profile</ListItemText>
+                </MenuItem>
                 <MenuItem onClick={handleClearCache}>
                     <ListItemIcon>
                         <ClearAllIcon fontSize="small" />

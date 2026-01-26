@@ -29,6 +29,7 @@ import MockDataIndicator from './components/MockDataIndicator'
 import AdminTasksPage from './projectManagementPages/AdminTasksPage'
 import AdminProjectDetailsPage from './projectManagementPages/AdminProjectDetailsPage'
 import AdminTaskDetailsPage from './projectManagementPages/AdminTaskDetailsPage'
+import EmployeeProfilePage from './pages/EmployeeProfilePage'
 import { AppDataProvider } from './contexts/AppDataContext'
 
 function AppContent() {
@@ -113,6 +114,13 @@ function AppContent() {
             >
               <AdminTaskDetailsPage />
             </RoleBasedRoute>
+          </ProtectedRoute>
+        } />
+
+        {/* Profile Route - accessible to all authenticated users */}
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <EmployeeProfilePage />
           </ProtectedRoute>
         } />
 

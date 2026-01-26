@@ -19,7 +19,7 @@ import {
 import type { ProjectPriorityResponse } from "../projectManagementTypes/projectPriorityType";
 import type { ProjectStatusResponse } from "../projectManagementTypes/projectStatusType";
 import type { MemberByEmployeeResponse } from "../projectManagementTypes/projectMember";
-import type { Update } from "vite/types/hmrPayload.js";
+import type { MarkNotificationReadRequest, NotificationResponse, NotificationSettingRequest, NotificationSettingResponse, NotificationSummaryResponse } from "../projectManagementTypes/projectNotificationType";
 
 const API_BASE = (window as any)._env_?.API_BASE;
 const api = axios.create({
@@ -394,6 +394,48 @@ export const projectMemberService = {
 
     getMemberOfProject: async (projectId: number): Promise<MemberByEmployeeResponse[]> => {
         const response = await api.get(`/api/ProjectMember/project/${projectId}`);
+        return unwrapApiEnvelope(response);
+    }
+};
+
+export const projectNotificationService = {
+    getAllNotification: async (includeRead: boolean): Promise<NotificationResponse[]> => {
+        const response = await api.get(`/api/Notification/all`, { params: { includeRead } });
+        return unwrapApiEnvelope(response);
+    },
+
+    markNotificationReadById: async (notificationId: number): Promise<void> => {
+        const response = await api.post(`/api/Notification/${notificationId}/read`);
+        return unwrapApiEnvelope(response);
+    },
+
+    markNotificationRead: async (request: MarkNotificationReadRequest): Promise<void> => {
+        const response = await api.post(`/api/Notification/read-multiple`, request);
+        return unwrapApiEnvelope(response);
+    },
+
+    getNotificationUnread: async (): Promise<NotificationResponse[]> => {
+        const response = await api.get(`/api/Notification/unread`);
+        return unwrapApiEnvelope(response);
+    },
+
+    getNotificationSummary: async (): Promise<NotificationSummaryResponse> => {
+        const response = await api.get(`/api/Notification/summary`);
+        return unwrapApiEnvelope(response);
+    },
+
+    deleteNotificationById: async (notificationId: number): Promise<void> => {
+        const response = await api.delete(`/api/Notification/${notificationId}/delete`);
+        return unwrapApiEnvelope(response);
+    },
+
+    getNotificationSettings: async (): Promise<NotificationSettingResponse[]> => {
+        const response = await api.get(`/api/Notification/settings`);
+        return unwrapApiEnvelope(response);
+    },
+
+    updateNotificationSettings: async (setting: NotificationSettingRequest): Promise<NotificationSettingResponse[]> => {
+        const response = await api.post(`/api/Notification/create-settings`, setting);
         return unwrapApiEnvelope(response);
     }
 };
