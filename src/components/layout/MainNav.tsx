@@ -135,10 +135,10 @@ export function MainNav(): React.JSX.Element {
                                     flexGrow: 1,
                                     textAlign: 'center',
                                     fontWeight: 650,
-                                    fontSize: '1.2rem',
+                                    fontSize: '1rem',
                                 }}
                             >
-                                Hi! {userLoggedIn}
+                                Hi! {userLoggedIn.toLocaleUpperCase()} 👋
                             </Typography>
                         </Stack>
                     </Stack>

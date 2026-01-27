@@ -17,6 +17,8 @@ export interface SummaryProfileEmployeeResponse {
     employeeId: number;
     employeeName: string;
     employeeCode: string;
+    employeePosition: string;
+    employeeRoles: string[];
     projects: ProjectProfileData[];
     tasks: TaskProfileData[];
     notifications: NotificationSummaryResponse;

@@ -148,7 +148,16 @@ export default function EmployeeProfilePage() {
                                     />
                                     <Chip
                                         icon={<PersonIcon />}
-                                        label={`ID: ${profile.employeeId}`}
+                                        label={`Position: ${profile.employeePosition}`}
+                                        sx={{
+                                            bgcolor: 'rgba(255, 255, 255, 0.2)',
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                        }}
+                                    />
+                                    <Chip
+                                        icon={<PersonIcon />}
+                                        label={`Roles: ${profile.employeeRoles.join(', ')}`}
                                         sx={{
                                             bgcolor: 'rgba(255, 255, 255, 0.2)',
                                             color: 'white',
