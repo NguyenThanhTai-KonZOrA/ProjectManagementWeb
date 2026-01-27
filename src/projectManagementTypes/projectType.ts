@@ -28,8 +28,10 @@ export interface ProjectResponse {
     id: string;
     projectName: string;
     projectCode: string;
-    priority: number;
-    comments: string[];
+    priorityId: number;
+    priorityName: string;
+    priorityColor: number;
+    comments: number;
     projectMembers: ProjectMemberResponse[];
     totalTasks: number;
     totalTaskCompleted: number;
@@ -41,6 +43,7 @@ export interface ProjectResponse {
     description: string;
     statusId: number;
     statusName: string;
+    statusColor: string;
     startDate: string;
     endDate: string;
 }

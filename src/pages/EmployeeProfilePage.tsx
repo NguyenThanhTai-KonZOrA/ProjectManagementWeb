@@ -18,6 +18,11 @@ import {
     CircularProgress,
     Tabs,
     Tab,
+    Switch,
+    FormControlLabel,
+    FormGroup,
+    Button,
+    Snackbar,
 } from '@mui/material';
 import {
     Person as PersonIcon,
@@ -28,9 +33,13 @@ import {
     Schedule as ScheduleIcon,
     CalendarToday as CalendarIcon,
     FolderOpen as FolderIcon,
+    Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { employeeRoleService } from '../services/rolePermissionService';
+import { projectNotificationService } from '../services/projectManagementService';
 import type { SummaryProfileEmployeeResponse } from '../projectManagementTypes/projectMember';
+import type { NotificationSettingResponse, NotificationSettingRequest } from '../projectManagementTypes/projectNotificationType';
+import { NotificationType } from '../projectManagementTypes/projectNotificationType';
 import { useSetPageTitle } from '../hooks/useSetPageTitle';
 import AdminLayout from '../components/layout/AdminLayout';
 import { useNavigate } from "react-router-dom";
@@ -62,9 +71,17 @@ export default function EmployeeProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState(0);
+    const [notificationSettings, setNotificationSettings] = useState<NotificationSettingResponse[]>([]);
+    const [settingsLoading, setSettingsLoading] = useState(false);
+    const [snackbar, setSnackbar] = useState<{
+        open: boolean;
+        message: string;
+        severity: "success" | "error" | "info";
+    }>({ open: false, message: "", severity: "info" });
     const navigate = useNavigate();
     useEffect(() => {
         loadProfile();
+        loadNotificationSettings();
     }, []);
 
     const loadProfile = async () => {
@@ -78,6 +95,59 @@ export default function EmployeeProfilePage() {
             console.error('Error loading profile:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadNotificationSettings = async () => {
+        try {
+            setSettingsLoading(true);
+            const data = await projectNotificationService.getNotificationSettings();
+            setNotificationSettings(data);
+        } catch (err) {
+            console.error('Error loading notification settings:', err);
+            setSnackbar({
+                open: true,
+                message: 'Failed to load notification settings',
+                severity: 'error',
+            });
+        } finally {
+            setSettingsLoading(false);
+        }
+    };
+
+    const handleNotificationSettingChange = async (
+        notificationType: number,
+        field: 'emailEnabled' | 'inAppEnabled' | 'pushEnabled' | 'smsEnabled',
+        value: boolean
+    ) => {
+        try {
+            const currentSetting = notificationSettings.find(s => s.notificationType === notificationType);
+            const updatedSetting: NotificationSettingRequest = {
+                notificationType,
+                emailEnabled: currentSetting?.emailEnabled ?? false,
+                inAppEnabled: currentSetting?.inAppEnabled ?? true,
+                pushEnabled: currentSetting?.pushEnabled ?? false,
+                smsEnabled: currentSetting?.smsEnabled ?? false,
+                [field]: value,
+            };
+
+            await projectNotificationService.createOrUpdateNotificationSettings(updatedSetting);
+
+            // Reload settings
+            await loadNotificationSettings();
+
+            setSnackbar({
+                open: true,
+                message: 'Notification settings updated successfully',
+                severity: 'success',
+            });
+        } catch (err) {
+            console.error('Error updating notification settings:', err);
+            setSnackbar({
+                open: true,
+                message: 'Failed to update notification settings',
+                severity: 'error',
+            });
         }
     };
 
@@ -246,6 +316,7 @@ export default function EmployeeProfilePage() {
                         <Tab icon={<FolderIcon />} label="Projects" iconPosition="start" />
                         <Tab icon={<AssignmentIcon />} label="Tasks" iconPosition="start" />
                         <Tab icon={<NotificationsIcon />} label="Notifications" iconPosition="start" />
+                        <Tab icon={<SettingsIcon />} label="Settings" iconPosition="start" />
                     </Tabs>
 
                     {/* Projects Tab */}
@@ -471,7 +542,96 @@ export default function EmployeeProfilePage() {
                             </Stack>
                         )}
                     </TabPanel>
+
+                    {/* Settings Tab */}
+                    <TabPanel value={activeTab} index={3}>
+                        <Card elevation={2}>
+                            <CardContent>
+                                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                    Notification Settings
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" paragraph>
+                                    Customize how you receive notifications for different events.
+                                </Typography>
+
+                                {settingsLoading ? (
+                                    <Box display="flex" justifyContent="center" py={4}>
+                                        <CircularProgress />
+                                    </Box>
+                                ) : (
+                                    <Stack spacing={3} mt={2}>
+                                        {Object.entries(NotificationType).map(([key, value]) => {
+                                            const setting = notificationSettings.find(s => s.notificationType === value);
+                                            return (
+                                                <Card key={value} variant="outlined">
+                                                    <CardContent>
+                                                        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                                                            {key.replace(/([A-Z])/g, ' $1').trim()}
+                                                        </Typography>
+                                                        <FormGroup row>
+                                                            <FormControlLabel
+                                                                control={
+                                                                    <Switch
+                                                                        checked={setting?.emailEnabled ?? false}
+                                                                        onChange={(e) => handleNotificationSettingChange(value, 'emailEnabled', e.target.checked)}
+                                                                    />
+                                                                }
+                                                                label="Email"
+                                                            />
+                                                            <FormControlLabel
+                                                                control={
+                                                                    <Switch
+                                                                        checked={setting?.inAppEnabled ?? true}
+                                                                        onChange={(e) => handleNotificationSettingChange(value, 'inAppEnabled', e.target.checked)}
+                                                                    />
+                                                                }
+                                                                label="In-App"
+                                                            />
+                                                            <FormControlLabel
+                                                                control={
+                                                                    <Switch
+                                                                        checked={setting?.pushEnabled ?? false}
+                                                                        onChange={(e) => handleNotificationSettingChange(value, 'pushEnabled', e.target.checked)}
+                                                                    />
+                                                                }
+                                                                label="Push"
+                                                            />
+                                                            <FormControlLabel
+                                                                control={
+                                                                    <Switch
+                                                                        checked={setting?.smsEnabled ?? false}
+                                                                        onChange={(e) => handleNotificationSettingChange(value, 'smsEnabled', e.target.checked)}
+                                                                    />
+                                                                }
+                                                                label="SMS"
+                                                            />
+                                                        </FormGroup>
+                                                    </CardContent>
+                                                </Card>
+                                            );
+                                        })}
+                                    </Stack>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabPanel>
                 </Paper>
+
+                {/* Snackbar for notifications */}
+                <Snackbar
+                    open={snackbar.open}
+                    autoHideDuration={6000}
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                >
+                    <Alert
+                        onClose={() => setSnackbar({ ...snackbar, open: false })}
+                        severity={snackbar.severity}
+                        sx={{ width: "100%" }}
+                    >
+                        {snackbar.message}
+                    </Alert>
+                </Snackbar>
             </Container>
         </AdminLayout>
     );

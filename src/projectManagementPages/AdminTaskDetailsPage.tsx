@@ -67,6 +67,7 @@ export default function AdminTaskDetailsPage() {
     const [newComment, setNewComment] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [openSubTaskDialog, setOpenSubTaskDialog] = useState<boolean>(false);
+    const [openBugTaskDialog, setOpenBugTaskDialog] = useState<boolean>(false);
     const [openEditTaskDialog, setOpenEditTaskDialog] = useState<boolean>(false);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [snackbar, setSnackbar] = useState<{
@@ -80,6 +81,20 @@ export default function AdminTaskDetailsPage() {
         projectId: 0,
         parentId: 0,
         taskType: "SubTask",
+        taskTitle: "",
+        description: "",
+        assignees: [],
+        attachments: [],
+        dueDate: "",
+        startDate: "",
+        priority: 1,
+    });
+
+    // Bug Task form state
+    const [bugTaskForm, setBugTaskForm] = useState<CreateOrUpdateSubTaskRequest>({
+        projectId: 0,
+        parentId: 0,
+        taskType: "Bug",
         taskTitle: "",
         description: "",
         assignees: [],
@@ -301,6 +316,14 @@ export default function AdminTaskDetailsPage() {
 
     const handleApprove = async () => {
         if (!id) return;
+        if (task?.isApproved) {
+            setSnackbar({
+                open: true,
+                message: "This task is already approved!",
+                severity: "info",
+            });
+            return;
+        }
         try {
             await taskManagementService.approveTask(parseInt(id));
             setSnackbar({
@@ -402,6 +425,23 @@ export default function AdminTaskDetailsPage() {
         setOpenSubTaskDialog(true);
     };
 
+    const handleOpenBugTaskDialog = () => {
+        if (!task) return;
+        setBugTaskForm({
+            projectId: task.projectId,
+            parentId: task.taskId,
+            taskType: "2", // Bug
+            taskTitle: "",
+            description: "",
+            assignees: [],
+            attachments: [],
+            dueDate: "",
+            startDate: "",
+            priority: 1,
+        });
+        setOpenBugTaskDialog(true);
+    };
+
     const handleCreateSubTask = async () => {
         try {
             const formDataToSend = new FormData();
@@ -431,6 +471,40 @@ export default function AdminTaskDetailsPage() {
             setSnackbar({
                 open: true,
                 message: error?.response?.data?.message || "Failed to create subtask",
+                severity: "error",
+            });
+        }
+    };
+
+    const handleCreateBugTask = async () => {
+        try {
+            const formDataToSend = new FormData();
+            formDataToSend.append("projectId", bugTaskForm.projectId.toString());
+            formDataToSend.append("parentId", bugTaskForm.parentId.toString());
+            formDataToSend.append("taskType", bugTaskForm.taskType);
+            formDataToSend.append("taskTitle", bugTaskForm.taskTitle);
+            formDataToSend.append("description", bugTaskForm.description);
+            formDataToSend.append("dueDate", bugTaskForm.dueDate);
+            formDataToSend.append("startDate", bugTaskForm.startDate);
+            formDataToSend.append("priority", bugTaskForm.priority.toString());
+
+            bugTaskForm.assignees.forEach((assignee) => {
+                formDataToSend.append("assignees", assignee.toString());
+            });
+
+            await taskManagementService.createOrUpdateBugTask(formDataToSend);
+            setSnackbar({
+                open: true,
+                message: "Bug task created successfully",
+                severity: "success",
+            });
+            setOpenBugTaskDialog(false);
+            loadTaskDetails();
+        } catch (error: any) {
+            console.error("Error creating bug task:", error);
+            setSnackbar({
+                open: true,
+                message: error?.response?.data?.message || "Failed to create bug task",
                 severity: "error",
             });
         }
@@ -568,6 +642,18 @@ export default function AdminTaskDetailsPage() {
         setLoading(false);
     };
 
+    // if task.isApproved is true, only show status New, Publish, Cancle
+    // if task.isRejected disable all status change
+    const reSetStatus = () => {
+        if (task?.isApproved || task?.isApproved === null) {
+            return statuses.filter(s => s.name === 'New' || s.name === 'Publish' || s.name === 'Cancel');
+        } else if (task?.isRejected) {
+            return statuses.filter(s => s.id === task.statusId);
+        } else {
+            return statuses;
+        }
+    }
+
     return (
         <AdminLayout>
             <Snackbar
@@ -607,6 +693,7 @@ export default function AdminTaskDetailsPage() {
                         startIcon={<ApproveIcon />}
                         onClick={handleApprove}
                         size="large"
+                        disabled={task?.isRejected}
                     >
                         Approve
                     </Button>
@@ -616,6 +703,7 @@ export default function AdminTaskDetailsPage() {
                         startIcon={<RejectIcon />}
                         onClick={handleReject}
                         size="large"
+                        disabled={task?.isApproved || task?.isRejected}
                     >
                         Reject
                     </Button>
@@ -631,21 +719,26 @@ export default function AdminTaskDetailsPage() {
                                 startIcon={<EditIcon />}
                                 size="small"
                                 onClick={handleOpenEditTaskDialog}
+                                disabled={task?.isRejected}
                                 sx={{
-                                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                    background: task?.isRejected ? "grey.400" : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                                 }}
                             >
                                 Edit Task
                             </Button>
-                            <Button variant="outlined" startIcon={<ShareIcon />} size="small">
+                            <Button variant="outlined" startIcon={<ShareIcon />} size="small" disabled={task?.isRejected}>
                                 Share
                             </Button>
-                            <Button variant="outlined" size="small">
+                            <Button variant="outlined" size="small" disabled={task?.isRejected}>
                                 📋 Copy Link
                             </Button>
-                            <IconButton size="small">
+                            <IconButton size="small" disabled={task?.isRejected}>
                                 <MoreVertIcon />
                             </IconButton>
+
+                            <Typography variant="h6" color="error" sx={{ alignSelf: "center", ml: "auto" }}>
+                                {task?.isRejected && "This task has been rejected and cannot be modified."}
+                            </Typography>
                         </Box>
 
                         {/* Description */}
@@ -763,6 +856,7 @@ export default function AdminTaskDetailsPage() {
                                     size="small"
                                     startIcon={<AddIcon />}
                                     onClick={handleOpenSubTaskDialog}
+                                    disabled={task?.isRejected}
                                 >
                                     Add Sub-Task
                                 </Button>
@@ -797,6 +891,60 @@ export default function AdminTaskDetailsPage() {
                                         />
                                     </Box>
                                 ))}
+                            </Box>
+                        </Card>
+
+                        {/* Bugs-Tasks */}
+                        <Card sx={{ p: 3, mb: 3 }}>
+                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                                <Typography variant="h6" fontWeight={600}>
+                                    Bug Tasks
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    startIcon={<AddIcon />}
+                                    onClick={handleOpenBugTaskDialog}
+                                    disabled={task?.isRejected}
+                                >
+                                    Add Bug Task
+                                </Button>
+                            </Box>
+                            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                {task?.bugTasks && task.bugTasks.length > 0 ? (
+                                    task.bugTasks.map((bugTask) => (
+                                        <Box
+                                            key={bugTask.subTaskId}
+                                            sx={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                p: 1,
+                                                borderRadius: 1,
+                                                cursor: "pointer",
+                                                "&:hover": { bgcolor: "action.hover" },
+                                            }}
+                                            onClick={() => handleSubTaskClick(bugTask.subTaskId)}
+                                        >
+                                            <FormControlLabel
+                                                control={<Checkbox defaultChecked />}
+                                                label={
+                                                    <Box>
+                                                        <Typography variant="body2" fontWeight={600}>
+                                                            {bugTask.taskCode}: {bugTask.taskTitle}
+                                                        </Typography>
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            Created by {bugTask.createdBy} • At: {FormatUtcTime.formatDateTime(bugTask.createdAt)} • Assignee: {bugTask.createdBy}
+                                                        </Typography>
+                                                    </Box>
+                                                }
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        </Box>
+                                    ))
+                                ) : (
+                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 2 }}>
+                                        No bug tasks yet
+                                    </Typography>
+                                )}
                             </Box>
                         </Card>
 
@@ -860,20 +1008,31 @@ export default function AdminTaskDetailsPage() {
                                             value={getCurrentStatus()?.id || ""}
                                             onChange={(e) => handleStatusChange(String(e.target.value))}
                                             displayEmpty
+                                            disabled={task?.isRejected}
                                         >
-                                            {statuses.filter(s => s.entityType === 'Task').map((status) => (
-                                                <MenuItem key={status.id} value={status.id}>
-                                                    <Chip
-                                                        label={status.name}
-                                                        color={status.color as any}
-                                                        size="medium"
-                                                        sx={{
-                                                            bgcolor: status.color,
-                                                            color: status.color,
-                                                        }}
-                                                    />
-                                                </MenuItem>
-                                            ))}
+                                            {statuses
+                                                .filter(s => s.entityType === 'Task')
+                                                .filter(s => {
+                                                    // If approved, only show New, Publish, Cancel
+                                                    if (task?.isApproved) {
+                                                        return s.name === 'New' || s.name === 'Publish' || s.name === 'Cancel';
+                                                    }
+                                                    // If rejected, show all but disable selection
+                                                    return true;
+                                                })
+                                                .map((status) => (
+                                                    <MenuItem key={status.id} value={status.id}>
+                                                        <Chip
+                                                            label={status.name}
+                                                            color={status.color as any}
+                                                            size="medium"
+                                                            sx={{
+                                                                bgcolor: status.color,
+                                                                color: status.color,
+                                                            }}
+                                                        />
+                                                    </MenuItem>
+                                                ))}
                                         </Select>
                                     </FormControl>
                                 </Box>
@@ -888,6 +1047,7 @@ export default function AdminTaskDetailsPage() {
                                             value={task?.priority || ""}
                                             onChange={(e) => handlePriorityChange(e.target.value as number)}
                                             displayEmpty
+                                            disabled={task?.isRejected}
                                         >
                                             {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
                                                 <MenuItem key={priority.id} value={priority.level}>
@@ -1061,6 +1221,75 @@ export default function AdminTaskDetailsPage() {
                     <Button onClick={() => setOpenSubTaskDialog(false)}>Cancel</Button>
                     <Button variant="contained" onClick={handleCreateSubTask}>
                         Create Sub-Task
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Add Bug Task Dialog */}
+            <Dialog open={openBugTaskDialog} onClose={() => setOpenBugTaskDialog(false)} maxWidth="md" fullWidth>
+                <DialogTitle>Add Bug Task</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ pt: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+                        <TextField
+                            fullWidth
+                            label="Task Title"
+                            value={bugTaskForm.taskTitle}
+                            onChange={(e) => setBugTaskForm({ ...bugTaskForm, taskTitle: e.target.value })}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Description"
+                            multiline
+                            rows={4}
+                            value={bugTaskForm.description}
+                            onChange={(e) => setBugTaskForm({ ...bugTaskForm, description: e.target.value })}
+                        />
+                        <Autocomplete
+                            multiple
+                            options={members}
+                            getOptionLabel={(option) => option.employeeName}
+                            value={members.filter((emp) => bugTaskForm.assignees.includes(emp.id))}
+                            onChange={(_, value) =>
+                                setBugTaskForm({ ...bugTaskForm, assignees: value.map((v) => v.id) })
+                            }
+                            renderInput={(params) => <TextField {...params} label="Assignees" />}
+                        />
+                        <FormControl fullWidth>
+                            <InputLabel>Priority</InputLabel>
+                            <Select
+                                value={bugTaskForm.priority}
+                                label="Priority"
+                                onChange={(e) =>
+                                    setBugTaskForm({ ...bugTaskForm, priority: e.target.value as number })
+                                }
+                            >
+                                {priorities.filter((priority) => priority.entityType === 'Task').map((priority) => (
+                                    <MenuItem key={priority.id} value={priority.id}>
+                                        {priority.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            fullWidth
+                            type="date"
+                            label="Due Date"
+                            value={bugTaskForm.dueDate}
+                            onChange={(e) => setBugTaskForm({ ...bugTaskForm, dueDate: e.target.value })}
+                            InputLabelProps={{ shrink: true }}
+                            onFocus={(e) => {
+                                const input = e.target as HTMLInputElement;
+                                if (input.showPicker) {
+                                    input.showPicker();
+                                }
+                            }}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenBugTaskDialog(false)}>Cancel</Button>
+                    <Button variant="contained" onClick={handleCreateBugTask}>
+                        Create Bug Task
                     </Button>
                 </DialogActions>
             </Dialog>

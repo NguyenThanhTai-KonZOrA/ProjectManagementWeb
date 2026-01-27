@@ -22,7 +22,6 @@ export interface CreateTaskRequest {
     priority: number;
 }
 
-
 export interface TaskResponse {
     taskId: number;
     projectId: number;
@@ -67,7 +66,10 @@ export interface TaskDetailResponse {
     createdAt: string;
     updatedAt: string;
     subTasks: SubTaskResponse[];
+    bugTasks: BugTaskResponse[];
     parentTaskId: number;
+    isApproved?: boolean;
+    isRejected?: boolean;
 }
 
 export interface SubTaskResponse {
@@ -109,6 +111,20 @@ export interface CreateOrUpdateSubTaskRequest {
     priority: number;
 }
 
+export interface CreateOrUpdateBugTaskRequest {
+    subTaskId?: number;
+    projectId: number;
+    parentId: number;
+    taskType: string;
+    taskTitle: string;
+    description: string;
+    assignees: number[];
+    attachments: File[];
+    dueDate: string;
+    startDate: string;
+    priority: number;
+}
+
 export interface ChangeTaskStatusRequest {
     taskId: number;
     newStatusId: string;
@@ -122,4 +138,23 @@ export interface ChangePriorityRequest {
 export interface UploadAttachmentsTaskRequest {
     taskId: number;
     attachments: File[];
+}
+
+export interface BugTaskResponse {
+    subTaskId: number;
+    projectId: number;
+    parentId: number;
+    taskType: string;
+    taskTitle: string;
+    taskCode: string;
+    description: string;
+    assignees: ProjectMemberResponse[];
+    attachments: TaskAttachmentsResponse[];
+    dueDate: string;
+    startDate: string;
+    priority: number;
+    createdAt: string;
+    updatedAt: string;
+    createdBy: string;
+    assignee: string;
 }

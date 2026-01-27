@@ -229,6 +229,16 @@ export const taskManagementService = {
         return unwrapApiEnvelope(response);
     },
 
+    // Request same CreateOrUpdateBugTaskRequest model
+    createOrUpdateBugTask: async (formData: FormData): Promise<boolean> => {
+        const response = await api.post('/api/task/create/bugtask', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return unwrapApiEnvelope(response);
+    },
+
     deleteSubTask: async (id: number): Promise<void> => {
         if (useMockData()) return mockTaskService.deleteSubTask(id);
         const response = await api.post(`/api/task/subtask/delete/${id}`);
@@ -434,7 +444,7 @@ export const projectNotificationService = {
         return unwrapApiEnvelope(response);
     },
 
-    updateNotificationSettings: async (setting: NotificationSettingRequest): Promise<NotificationSettingResponse[]> => {
+    createOrUpdateNotificationSettings: async (setting: NotificationSettingRequest): Promise<NotificationSettingResponse[]> => {
         const response = await api.post(`/api/Notification/create-settings`, setting);
         return unwrapApiEnvelope(response);
     }

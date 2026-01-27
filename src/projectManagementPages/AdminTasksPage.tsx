@@ -28,6 +28,10 @@ import {
     DialogContent,
     DialogActions,
     Autocomplete,
+    ToggleButtonGroup,
+    ToggleButton,
+    AvatarGroup,
+    Tooltip,
 } from "@mui/material";
 import {
     Add as AddIcon,
@@ -37,6 +41,9 @@ import {
     CheckCircle as ApproveIcon,
     Cancel as RejectIcon,
     Search as SearchIcon,
+    ViewList as ViewListIcon,
+    ViewKanban as ViewKanbanIcon,
+    Timeline as TimelineIcon,
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -65,6 +72,7 @@ export default function AdminTasksPage() {
     const [projectFilter, setProjectFilter] = useState<string>(searchParams.get("projectId") || "All");
     const [projectTypeFilter, setProjectTypeFilter] = useState<string>("All");
     const [assigneeFilter, setAssigneeFilter] = useState<string>("All");
+    const [viewMode, setViewMode] = useState<"table" | "board" | "roadmap">("table");
     const [page, setPage] = useState<number>(0);
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -579,6 +587,30 @@ export default function AdminTasksPage() {
 
                         <Box sx={{ flex: 1 }} />
 
+                        {/* View Mode Switcher */}
+                        <ToggleButtonGroup
+                            value={viewMode}
+                            exclusive
+                            onChange={(_, value) => value && setViewMode(value)}
+                            size="small"
+                        >
+                            <ToggleButton value="table">
+                                <Tooltip title="Table View">
+                                    <ViewListIcon />
+                                </Tooltip>
+                            </ToggleButton>
+                            <ToggleButton value="board">
+                                <Tooltip title="Board View">
+                                    <ViewKanbanIcon />
+                                </Tooltip>
+                            </ToggleButton>
+                            <ToggleButton value="roadmap">
+                                <Tooltip title="Roadmap View">
+                                    <TimelineIcon />
+                                </Tooltip>
+                            </ToggleButton>
+                        </ToggleButtonGroup>
+
                         {/* Create Task Button */}
                         <Button
                             variant="contained"
@@ -593,7 +625,8 @@ export default function AdminTasksPage() {
                     </Box>
                 </Card>
 
-                {/* Task List Table */}
+                {/* Task List - Table View */}
+                {viewMode === "table" && (
                 <Card>
                     <Box sx={{ p: 2 }}>
                         <Typography variant="h6" fontWeight={600}>
@@ -691,6 +724,188 @@ export default function AdminTasksPage() {
                         </Box>
                     )}
                 </Card>
+                )}
+
+                {/* Task List - Board View */}
+                {viewMode === "board" && (
+                    <Box sx={{ display: "flex", gap: 2, overflowX: "auto", pb: 2 }}>
+                        {statuses.filter((status) => status.entityType === 'Task').map((status) => {
+                            const statusTasks = filteredTasks.filter((task) => task.statusId === status.id);
+                            return (
+                                <Card
+                                    key={status.id}
+                                    sx={{
+                                        minWidth: 300,
+                                        maxWidth: 300,
+                                        bgcolor: "background.paper",
+                                    }}
+                                >
+                                    <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+                                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                            <Typography variant="subtitle1" fontWeight={600}>
+                                                {status.name}
+                                            </Typography>
+                                            <Chip label={statusTasks.length} size="small" color={status.color as any} />
+                                        </Box>
+                                    </Box>
+                                    <Box sx={{ p: 2, maxHeight: 600, overflowY: "auto" }}>
+                                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                            {statusTasks.map((task) => (
+                                                <Card
+                                                    key={task.taskId}
+                                                    variant="outlined"
+                                                    sx={{
+                                                        cursor: "pointer",
+                                                        "&:hover": { boxShadow: 3 },
+                                                    }}
+                                                    onClick={() => handleTaskClick(task.taskId)}
+                                                >
+                                                    <Box sx={{ p: 2 }}>
+                                                        <Typography variant="body2" fontWeight={600} gutterBottom>
+                                                            {task.taskCode}
+                                                        </Typography>
+                                                        <Typography variant="body2" gutterBottom>
+                                                            {task.taskTitle}
+                                                        </Typography>
+                                                        <Box sx={{ display: "flex", gap: 1, mt: 1, mb: 1 }}>
+                                                            <Chip
+                                                                label={task.priorityName}
+                                                                size="small"
+                                                                color={task.priorityColor as any}
+                                                            />
+                                                        </Box>
+                                                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
+                                                            <AvatarGroup max={3} sx={{ justifyContent: "flex-start" }}>
+                                                                {task.assignees.map((assignee, idx) => (
+                                                                    <Tooltip key={idx} title={assignee.memberName}>
+                                                                        <Avatar
+                                                                            src={assignee.memberImage}
+                                                                            sx={{ width: 24, height: 24 }}
+                                                                        >
+                                                                            {assignee.memberName.charAt(0)}
+                                                                        </Avatar>
+                                                                    </Tooltip>
+                                                                ))}
+                                                            </AvatarGroup>
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                {formatDate(task.dueDate)}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </Card>
+                                            ))}
+                                        </Box>
+                                    </Box>
+                                </Card>
+                            );
+                        })}
+                    </Box>
+                )}
+
+                {/* Task List - Roadmap View */}
+                {viewMode === "roadmap" && (
+                    <Card>
+                        <Box sx={{ p: 2 }}>
+                            <Typography variant="h6" fontWeight={600}>
+                                Task Roadmap ({filteredTasks.length})
+                            </Typography>
+                        </Box>
+                        <Box sx={{ p: 3 }}>
+                            {filteredTasks.map((task, index) => (
+                                <Box key={task.taskId}>
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            gap: 3,
+                                            cursor: "pointer",
+                                            p: 2,
+                                            borderRadius: 1,
+                                            "&:hover": { bgcolor: "action.hover" },
+                                        }}
+                                        onClick={() => handleTaskClick(task.taskId)}
+                                    >
+                                        {/* Timeline */}
+                                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 40 }}>
+                                            <Box
+                                                sx={{
+                                                    width: 12,
+                                                    height: 12,
+                                                    borderRadius: "50%",
+                                                    bgcolor: task.statusColor || "primary.main",
+                                                    border: 2,
+                                                    borderColor: "background.paper",
+                                                }}
+                                            />
+                                            {index < filteredTasks.length - 1 && (
+                                                <Box
+                                                    sx={{
+                                                        width: 2,
+                                                        flex: 1,
+                                                        bgcolor: "divider",
+                                                        my: 1,
+                                                        minHeight: 60,
+                                                    }}
+                                                />
+                                            )}
+                                        </Box>
+                                        {/* Content */}
+                                        <Box sx={{ flex: 1, pb: 3 }}>
+                                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "start", mb: 1 }}>
+                                                <Box>
+                                                    <Typography variant="subtitle2" fontWeight={600}>
+                                                        {task.taskCode}: {task.taskTitle}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        {formatDate(task.startDate)} → {formatDate(task.dueDate)}
+                                                    </Typography>
+                                                </Box>
+                                                <Box sx={{ display: "flex", gap: 1 }}>
+                                                    <Chip
+                                                        label={task.statusName}
+                                                        size="small"
+                                                        color={task.statusColor as any}
+                                                    />
+                                                    <Chip
+                                                        label={task.priorityName}
+                                                        size="small"
+                                                        color={task.priorityColor as any}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                            <Typography variant="body2" color="text.secondary" paragraph>
+                                                {task.description}
+                                            </Typography>
+                                            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                                                <AvatarGroup max={4}>
+                                                    {task.assignees.map((assignee, idx) => (
+                                                        <Tooltip key={idx} title={assignee.memberName}>
+                                                            <Avatar
+                                                                src={assignee.memberImage}
+                                                                sx={{ width: 28, height: 28 }}
+                                                            >
+                                                                {assignee.memberName.charAt(0)}
+                                                            </Avatar>
+                                                        </Tooltip>
+                                                    ))}
+                                                </AvatarGroup>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    Project: {task.projectTypeName}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            ))}
+                            {filteredTasks.length === 0 && !loading && (
+                                <Box sx={{ textAlign: "center", py: 8 }}>
+                                    <Typography variant="h6" color="text.secondary">
+                                        No tasks found
+                                    </Typography>
+                                </Box>
+                            )}
+                        </Box>
+                    </Card>
+                )}
             </Box>
 
             {/* Action Menu */}

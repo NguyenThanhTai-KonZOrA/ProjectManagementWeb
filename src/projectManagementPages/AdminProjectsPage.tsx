@@ -266,7 +266,7 @@ export default function AdminProjectsPage() {
             startDate: project.startDate.split("T")[0], // Adjust based on actual data
             endDate: project.endDate.split("T")[0], // Adjust based on actual data
             projectMembers: project.projectMembers.map((m) => m.memberId),
-            priority: project.priority,
+            priority: project.priorityId,
             projectCategory: project.projectCategoryId.toString(),
             description: project.description,
         });
@@ -449,8 +449,8 @@ export default function AdminProjectsPage() {
                         const status = getProjectStatus(project);
                         const daysLeft = parseInt(project.projectTimeLine);
                         const completionPercentage = Math.round((project.totalTaskCompleted / project.totalTasks) * 100) || 0;
-                        const priorityLabel = getPriorityLabel(project.priority);
-                        const priorityColor = getPriorityColor(project.priority);
+                        const priorityLabel = getPriorityLabel(project.priorityId);
+                        const priorityColor = getPriorityColor(project.priorityId);
 
                         return (
                             <Card
@@ -495,11 +495,42 @@ export default function AdminProjectsPage() {
                                                 {project.projectName}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary">
-                                                {project.projectType === 1 ? "Web application" : "App mobile"}
+                                                {project.projectCategoryName}
                                             </Typography>
                                         </Box>
 
                                         {/* Action Buttons */}
+                                        <Box sx={{ display: "flex", gap: 1 }}>
+                                            <Chip
+                                                label={project.projectTypeName}
+                                                size="small"
+                                                sx={{
+                                                    bgcolor: project.projectType === 1 ? "#8B7FDE" : "#C19A6B",
+                                                    color: "white",
+                                                    fontWeight: 600,
+                                                }}
+                                            />
+                                        </Box>
+                                    </Box>
+                                    <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 2 }}>
+                                        <Box sx={{ display: "flex", gap: 1 }}>
+                                            <Chip label={project.priorityName} size="small" color={project.priorityColor as any}
+                                                sx={{
+                                                    bgcolor: project.priorityColor,
+                                                    color: "white",
+                                                    fontWeight: 600,
+                                                }} />
+                                            <Chip
+                                                label={project.statusName}
+                                                size="small"
+                                                color={project.statusColor as any}
+                                                sx={{
+                                                    bgcolor: project.statusColor,
+                                                    color: "white",
+                                                    fontWeight: 600,
+                                                }}
+                                            />
+                                        </Box>
                                         <Box sx={{ display: "flex", gap: 1 }}>
                                             <IconButton
                                                 size="small"
@@ -525,28 +556,6 @@ export default function AdminProjectsPage() {
                                     </Box>
 
                                     {/* Priority & Category Tags */}
-                                    <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-                                        <Chip
-                                            label={project.projectTypeName}
-                                            size="small"
-                                            sx={{
-                                                bgcolor: project.projectType === 1 ? "#8B7FDE" : "#C19A6B",
-                                                color: "white",
-                                                fontWeight: 600,
-                                            }}
-                                        />
-                                        <Chip label={priorityLabel} size="small" color={priorityColor} />
-                                        <Chip
-                                            label={project.statusName}
-                                            size="small"
-                                            sx={{
-                                                bgcolor: project.statusId === 1 ? "#8B7FDE" : "#C19A6B",
-                                                color: "white",
-                                                fontWeight: 600,
-                                            }}
-                                        />
-                                    </Box>
-
                                     {/* Project Stats */}
                                     <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
                                         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -582,7 +591,7 @@ export default function AdminProjectsPage() {
                                         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                                             <CommentIcon fontSize="small" color="action" />
                                             <Typography variant="body2" color="text.secondary">
-                                                {project.comments.length}
+                                                {project.comments}
                                             </Typography>
                                         </Box>
                                     </Box>
