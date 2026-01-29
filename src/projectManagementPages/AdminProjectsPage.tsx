@@ -47,10 +47,12 @@ import type { ProjectCategoryResponse } from "../projectManagementTypes/projectC
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { PAGE_TITLES } from "../constants/pageTitles";
 import { useAppData } from "../contexts/AppDataContext";
+import { useIsProjectManager } from "../hooks/useIsProjectManager";
 
 export default function AdminProjectsPage() {
     useSetPageTitle(PAGE_TITLES.DEFAULT);
     const { priorities, statuses, members } = useAppData();
+    const isProjectManager = useIsProjectManager();
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
     const [projects, setProjects] = useState<ProjectResponse[]>([]);
@@ -433,6 +435,7 @@ export default function AdminProjectsPage() {
                             variant="contained"
                             startIcon={<AddIcon />}
                             onClick={handleOpenDialog}
+                            disabled={!isProjectManager}
                             sx={{
                                 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                                 color: "white",
@@ -449,8 +452,6 @@ export default function AdminProjectsPage() {
                         const status = getProjectStatus(project);
                         const daysLeft = parseInt(project.projectTimeLine);
                         const completionPercentage = Math.round((project.totalTaskCompleted / project.totalTasks) * 100) || 0;
-                        const priorityLabel = getPriorityLabel(project.priorityId);
-                        const priorityColor = getPriorityColor(project.priorityId);
 
                         return (
                             <Card
@@ -468,7 +469,7 @@ export default function AdminProjectsPage() {
                             >
                                 <CardContent>
                                     {/* Header Section */}
-                                    <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 2 }}>
+                                    <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
                                         <Avatar
                                             sx={{
                                                 width: 48,
@@ -480,7 +481,7 @@ export default function AdminProjectsPage() {
                                         </Avatar>
                                         <Box sx={{ flex: 1 }}>
                                             <Typography
-                                                variant="subtitle1"
+                                                variant="subtitle2"
                                                 fontWeight={600}
                                                 sx={{
                                                     mb: 0.5,
@@ -499,7 +500,16 @@ export default function AdminProjectsPage() {
                                             </Typography>
                                         </Box>
 
-                                        {/* Action Buttons */}
+                                        <Box sx={{ flex: 1, justifyContent: "flex-end", display: "flex", gap: 1 }}>
+                                            <Chip label={project.priorityName} size="small" color={project.priorityColor as any}
+                                                sx={{
+                                                    bgcolor: project.priorityColor,
+                                                    color: "white",
+                                                    fontWeight: 600,
+                                                }} />
+                                        </Box>
+
+                                        {/* Project Type */}
                                         <Box sx={{ display: "flex", gap: 1 }}>
                                             <Chip
                                                 label={project.projectTypeName}
@@ -513,25 +523,37 @@ export default function AdminProjectsPage() {
                                         </Box>
                                     </Box>
                                     <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 2 }}>
-                                        <Box sx={{ display: "flex", gap: 1 }}>
-                                            <Chip label={project.priorityName} size="small" color={project.priorityColor as any}
-                                                sx={{
-                                                    bgcolor: project.priorityColor,
-                                                    color: "white",
-                                                    fontWeight: 600,
-                                                }} />
-                                            <Chip
-                                                label={project.statusName}
-                                                size="small"
-                                                color={project.statusColor as any}
-                                                sx={{
-                                                    bgcolor: project.statusColor,
-                                                    color: "white",
-                                                    fontWeight: 600,
-                                                }}
-                                            />
+                                        {/* <Chip label={project.priorityName} size="small" color={project.priorityColor as any}
+                                            sx={{
+                                                bgcolor: project.priorityColor,
+                                                color: "white",
+                                                fontWeight: 600,
+                                            }} />
+                                        <Chip
+                                            label={project.statusName}
+                                            size="small"
+                                            color={project.statusColor as any}
+                                            sx={{
+                                                bgcolor: project.statusColor,
+                                                color: "white",
+                                                fontWeight: 600,
+                                            }}
+                                        /> */}
+                                        <Box sx={{ flex: 1, justifyContent: "flex-start", display: "flex" }}>
+                                            <AvatarGroup max={10} sx={{ justifyContent: "flex-start" }}>
+                                                {project.projectMembers.map((member, index) => (
+                                                    <Tooltip key={index} title={member.memberName}>
+                                                        <Avatar
+                                                            src={member.memberImage}
+                                                            alt={member.memberName}
+                                                            sx={{ width: 25, height: 25 }}
+                                                        />
+                                                    </Tooltip>
+                                                ))}
+                                            </AvatarGroup>
                                         </Box>
-                                        <Box sx={{ display: "flex", gap: 1 }}>
+
+                                        <Box sx={{ flex: 1, justifyContent: "flex-end", display: "flex" }}>
                                             <IconButton
                                                 size="small"
                                                 onClick={() => handleEdit(project)}
@@ -555,7 +577,6 @@ export default function AdminProjectsPage() {
                                         </Box>
                                     </Box>
 
-                                    {/* Priority & Category Tags */}
                                     {/* Project Stats */}
                                     <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
                                         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -622,19 +643,9 @@ export default function AdminProjectsPage() {
                                     </Box>
 
                                     {/* Team Members */}
-                                    <Box sx={{ mb: 1 }}>
-                                        <AvatarGroup max={10} sx={{ justifyContent: "flex-start" }}>
-                                            {project.projectMembers.map((member, index) => (
-                                                <Tooltip key={index} title={member.memberName}>
-                                                    <Avatar
-                                                        src={member.memberImage}
-                                                        alt={member.memberName}
-                                                        sx={{ width: 25, height: 25 }}
-                                                    />
-                                                </Tooltip>
-                                            ))}
-                                        </AvatarGroup>
-                                    </Box>
+                                    {/* <Box sx={{ mb: 1 }}>
+
+                                    </Box> */}
                                     {/* Days Left Indicator */}
                                     {status !== "Completed" && (
                                         <Box

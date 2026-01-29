@@ -25,5 +25,6 @@ export const PAGE_TITLES = {
     DEFAULT: "Project Management",
 
     TASKDETAIL: "View Task Details",
-    PROJECTDETAIL: "View Project Details"
+    PROJECTDETAIL: "View Project Details",
+    ADMIN_TASK_HISTORY_REPORT: "Task History Report"
 } as const;

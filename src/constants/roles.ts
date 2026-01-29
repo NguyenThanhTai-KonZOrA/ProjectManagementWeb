@@ -2,6 +2,7 @@ export const UserRole = {
     ADMIN: 'Administrator',
     USER: 'user',
     MANAGER: 'Manager',
+    PROJECT_MANAGER: 'Project Manager',
     COUNTERSTAFF: 'CounterStaff',
     VIEWER: 'Viewer',
 } as const;
@@ -62,6 +63,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         Permission.VIEW_INSTALLATION_REPORTS,
         Permission.VIEW_AUDIT_LOGS,
     ],
+    [UserRole.PROJECT_MANAGER]: [
+        Permission.VIEW_ADMIN_DASHBOARD,
+    ],
     [UserRole.COUNTERSTAFF]: [
         Permission.VIEW_ADMIN_CALL,
     ],
@@ -92,6 +96,10 @@ export const getPrimaryRole = (roles: string[] | null): UserRole | null => {
     if (roles.includes(UserRole.ADMIN)) {
         // console.log('✅ [getPrimaryRole] Primary role = Administrator');
         return UserRole.ADMIN;
+    }
+    if (roles.includes(UserRole.PROJECT_MANAGER)) {
+        // console.log('✅ [getPrimaryRole] Primary role = Project Manager');
+        return UserRole.PROJECT_MANAGER;
     }
     if (roles.includes(UserRole.MANAGER)) {
         // console.log('✅ [getPrimaryRole] Primary role = Manager');

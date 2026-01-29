@@ -29,6 +29,7 @@ import MockDataIndicator from './components/MockDataIndicator'
 import AdminTasksPage from './projectManagementPages/AdminTasksPage'
 import AdminProjectDetailsPage from './projectManagementPages/AdminProjectDetailsPage'
 import AdminTaskDetailsPage from './projectManagementPages/AdminTaskDetailsPage'
+import AdminTaskHistoryReportPage from './pages/AdminTaskHistoryReportPage'
 import EmployeeProfilePage from './pages/EmployeeProfilePage'
 import { AppDataProvider } from './contexts/AppDataContext'
 
@@ -121,6 +122,19 @@ function AppContent() {
         <Route path="/profile" element={
           <ProtectedRoute>
             <EmployeeProfilePage />
+          </ProtectedRoute>
+        } />
+
+        {/* Task History Report Route */}
+        <Route path="/admin/project-management/task-history-report" element={
+          <ProtectedRoute>
+            <RoleBasedRoute
+              requiredPermission={Permission.VIEW_ADMIN_DASHBOARD}
+              fallbackPath="/admin-dashboard"
+              showAccessDenied={true}
+            >
+              <AdminTaskHistoryReportPage />
+            </RoleBasedRoute>
           </ProtectedRoute>
         } />
 

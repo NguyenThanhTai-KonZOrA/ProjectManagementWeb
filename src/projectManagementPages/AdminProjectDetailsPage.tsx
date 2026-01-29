@@ -55,6 +55,7 @@ import CommentSection from "../components/CommentSection";
 import { PAGE_TITLES } from "../constants/pageTitles";
 import { TaskType, type CreateTaskRequest } from "../projectManagementTypes/taskType";
 import type { ProjectAttachmentsResponse } from "../projectManagementTypes/projectAttachmentsResponse";
+import { useIsProjectManager } from "../hooks/useIsProjectManager";
 
 export default function AdminProjectDetailsPage() {
     useSetPageTitle(PAGE_TITLES.PROJECTDETAIL);
@@ -62,6 +63,7 @@ export default function AdminProjectDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { priorities, members, statuses } = useAppData();
+    const isProjectManager = useIsProjectManager();
     const [loading, setLoading] = useState<boolean>(false);
     const [project, setProject] = useState<ProjectDetailsResponse | null>(null);
     const [comments, setComments] = useState<CommentResponse[]>([]);
@@ -769,6 +771,7 @@ export default function AdminProjectDetailsPage() {
                                     variant="contained"
                                     startIcon={<EditIcon />}
                                     onClick={handleOpenEditDialog}
+                                    disabled={!isProjectManager}
                                     sx={{
                                         background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                                     }}
@@ -781,6 +784,7 @@ export default function AdminProjectDetailsPage() {
                                     variant="contained"
                                     startIcon={<AddIcon />}
                                     onClick={handleOpenTaskDialog}
+                                    disabled={!isProjectManager}
                                     sx={{
                                         background: "linear-gradient(135deg, #b86f9aff 0%, #780fe0ff 100%)",
                                     }}
@@ -1062,6 +1066,7 @@ export default function AdminProjectDetailsPage() {
                                         <Select
                                             value={project?.statusId || 1}
                                             onChange={(e) => handleStatusChange(Number(e.target.value))}
+                                            disabled={!isProjectManager}
                                         >
                                             {statuses.filter(s => s.entityType === 'Project').map((status) => (
                                                 <MenuItem key={status.id} value={status.id}>
@@ -1089,6 +1094,7 @@ export default function AdminProjectDetailsPage() {
                                         <Select
                                             value={project?.priorityId || 1}
                                             onChange={(e) => handlePriorityChange(Number(e.target.value))}
+                                            disabled={!isProjectManager}
                                         >
                                             {priorities.filter(p => p.entityType === 'Project').map((priority) => (
                                                 <MenuItem key={priority.id} value={priority.id}>

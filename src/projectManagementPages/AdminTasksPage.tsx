@@ -32,6 +32,7 @@ import {
     ToggleButton,
     AvatarGroup,
     Tooltip,
+    Badge,
 } from "@mui/material";
 import {
     Add as AddIcon,
@@ -44,6 +45,9 @@ import {
     ViewList as ViewListIcon,
     ViewKanban as ViewKanbanIcon,
     Timeline as TimelineIcon,
+    PlaylistAddCheckRounded as SubTaskIcon,
+    BugReportRounded as BugTaskIcon
+
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -56,6 +60,7 @@ import { type TaskResponse, type CreateTaskRequest, TaskType } from "../projectM
 import type { ProjectResponse, ProjectSummaryResponse } from "../projectManagementTypes/projectType";
 import { useSetPageTitle } from "../hooks/useSetPageTitle";
 import { useAppData } from "../contexts/AppDataContext";
+import { extractErrorMessage } from "../utils/errorHandler";
 
 export default function AdminTasksPage() {
     useSetPageTitle("Task Management");
@@ -479,9 +484,10 @@ export default function AdminTasksPage() {
             loadTasks();
         } catch (error: any) {
             console.error("Error saving task:", error);
+            const errorMessage = extractErrorMessage(error, "Failed to load applications data");
             setSnackbar({
                 open: true,
-                message: error?.response?.data?.message || "Failed to save task",
+                message: errorMessage || "Failed to save task",
                 severity: "error",
             });
         } finally {
@@ -627,103 +633,135 @@ export default function AdminTasksPage() {
 
                 {/* Task List - Table View */}
                 {viewMode === "table" && (
-                <Card>
-                    <Box sx={{ p: 2 }}>
-                        <Typography variant="h6" fontWeight={600}>
-                            Task list ({filteredTasks.length})
-                        </Typography>
-                    </Box>
-
-                    <TableContainer>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>#Key</TableCell>
-                                    <TableCell>Task Title</TableCell>
-                                    <TableCell>Status</TableCell>
-                                    <TableCell>Assignees</TableCell>
-                                    <TableCell>Priority</TableCell>
-                                    <TableCell>Due date</TableCell>
-                                    <TableCell align="center">Action</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {filteredTasks.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((task) => {
-                                    const status = getTaskStatus(task);
-                                    return (
-                                        <TableRow
-                                            key={task.taskId}
-                                            hover
-                                            sx={{ cursor: "pointer" }}
-                                            onClick={() => handleTaskClick(task.taskId)}
-                                        >
-                                            <TableCell>{task.taskCode}</TableCell>
-                                            <TableCell>{task.taskTitle}</TableCell>
-                                            <TableCell>
-                                                <Chip label={task.statusName} size="small" color={task.statusColor as any} />
-                                            </TableCell>
-                                            <TableCell>
-                                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                    <Avatar
-                                                        src={task.assignees[0]?.memberImage}
-                                                        sx={{ width: 32, height: 32 }}
-                                                    >
-                                                        {task.assignees[0]?.memberName.charAt(0)}
-                                                    </Avatar>
-                                                    <Typography variant="body2">{task.assignees[0]?.memberName}</Typography>
-                                                </Box>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Chip
-                                                    label={task.priorityName}
-                                                    size="small"
-                                                    color={task.priorityColor as any}
-                                                />
-                                            </TableCell>
-                                            <TableCell>{formatDate(task.dueDate)}</TableCell>
-                                            <TableCell align="center">
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleMenuOpen(e, task)}
-                                                >
-                                                    <MoreVertIcon />
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-
-                    {/* Pagination */}
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 2 }}>
-                        <Typography variant="body2" color="text.secondary">
-                            {page * rowsPerPage + 1}-{Math.min((page + 1) * rowsPerPage, filteredTasks.length)} of{" "}
-                            {filteredTasks.length}
-                        </Typography>
-                        <TablePagination
-                            component="div"
-                            count={filteredTasks.length}
-                            page={page}
-                            onPageChange={(_, newPage) => setPage(newPage)}
-                            rowsPerPage={rowsPerPage}
-                            onRowsPerPageChange={(e) => {
-                                setRowsPerPage(parseInt(e.target.value, 10));
-                                setPage(0);
-                            }}
-                            rowsPerPageOptions={[10, 20, 50]}
-                        />
-                    </Box>
-
-                    {filteredTasks.length === 0 && !loading && (
-                        <Box sx={{ textAlign: "center", py: 8 }}>
-                            <Typography variant="h6" color="text.secondary">
-                                No tasks found
+                    <Card>
+                        <Box sx={{ p: 2 }}>
+                            <Typography variant="h6" fontWeight={600}>
+                                Task list ({filteredTasks.length})
                             </Typography>
                         </Box>
-                    )}
-                </Card>
+
+                        <TableContainer>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>#Key</TableCell>
+                                        <TableCell></TableCell>
+                                        <TableCell>Task Title</TableCell>
+                                        <TableCell>Status</TableCell>
+                                        <TableCell>Assignees</TableCell>
+                                        <TableCell>Priority</TableCell>
+                                        <TableCell>Due date</TableCell>
+                                        <TableCell align="center">Action</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {filteredTasks.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((task) => {
+                                        const status = getTaskStatus(task);
+                                        return (
+                                            <TableRow
+                                                key={task.taskId}
+                                                hover
+                                                sx={{ cursor: "pointer" }}
+                                                onClick={() => handleTaskClick(task.taskId)}
+                                            >
+                                                <TableCell>{task.taskCode}</TableCell>
+                                                <TableCell>
+
+                                                    {task && task.totalSubTasks > 0 && (
+                                                        <Tooltip title="Total Sub tasks">
+                                                            <IconButton
+                                                                sx={{ color: 'inherit' }}
+                                                            >
+                                                                <Badge badgeContent={task.totalSubTasks} color="success">
+                                                                    <SubTaskIcon />
+                                                                </Badge>
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    )}
+
+                                                    {task && task.totalBugTasks > 0 && (
+                                                        <Tooltip title="Total Bug tasks">
+                                                            <IconButton
+                                                                sx={{ color: 'inherit' }}
+                                                            >
+                                                                <Badge badgeContent={task.totalBugTasks} color="error">
+                                                                    <BugTaskIcon />
+                                                                </Badge>
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>{task.taskTitle}</TableCell>
+                                                <TableCell>
+                                                    <Chip label={task.statusName} size="small" color={task.statusColor as any} />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                        <AvatarGroup max={10}>
+                                                            {task.assignees.map((assignee, idx) => (
+                                                                <Tooltip key={idx} title={assignee.memberName}>
+                                                                    <Avatar
+                                                                        src={assignee.memberImage}
+                                                                        sx={{ width: 28, height: 28 }}
+                                                                    >
+                                                                        {assignee.memberName.charAt(0)}
+                                                                    </Avatar>
+                                                                </Tooltip>
+                                                            ))}
+                                                        </AvatarGroup>
+                                                    </Box>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Chip
+                                                        label={task.priorityName}
+                                                        size="small"
+                                                        color={task.priorityColor as any}
+                                                    />
+                                                </TableCell>
+                                                <TableCell>{formatDate(task.dueDate)}</TableCell>
+                                                <TableCell align="center">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => handleMenuOpen(e, task)}
+                                                    >
+                                                        <MoreVertIcon />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+
+                        {/* Pagination */}
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                                {page * rowsPerPage + 1}-{Math.min((page + 1) * rowsPerPage, filteredTasks.length)} of{" "}
+                                {filteredTasks.length}
+                            </Typography>
+                            <TablePagination
+                                component="div"
+                                count={filteredTasks.length}
+                                page={page}
+                                onPageChange={(_, newPage) => setPage(newPage)}
+                                rowsPerPage={rowsPerPage}
+                                onRowsPerPageChange={(e) => {
+                                    setRowsPerPage(parseInt(e.target.value, 10));
+                                    setPage(0);
+                                }}
+                                rowsPerPageOptions={[10, 20, 50]}
+                            />
+                        </Box>
+
+                        {filteredTasks.length === 0 && !loading && (
+                            <Box sx={{ textAlign: "center", py: 8 }}>
+                                <Typography variant="h6" color="text.secondary">
+                                    No tasks found
+                                </Typography>
+                            </Box>
+                        )}
+                    </Card>
                 )}
 
                 {/* Task List - Board View */}
@@ -1096,8 +1134,6 @@ export default function AdminTasksPage() {
                                 />
                             )}
                         />
-
-
 
                         <TextField
                             label="Description"

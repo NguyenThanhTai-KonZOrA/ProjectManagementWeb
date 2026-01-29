@@ -104,13 +104,13 @@ const navItems: NavItem[] = [
     //     icon: ManageHistoryIcon,
     //     requiredPermission: Permission.VIEW_INSTALLATION_LOGS
     // },
-    // {
-    //     key: 'report-by-application',
-    //     title: 'Installation Report',
-    //     href: '/admin-report-by-application',
-    //     icon: AssessmentIcon,
-    //     requiredPermission: Permission.VIEW_INSTALLATION_REPORTS
-    // },
+   {
+        key: 'admin-task-history-report',
+        title: 'Task History Report',
+        href: '/admin/project-management/task-history-report',
+        icon: AssessmentIcon,
+        requiredPermission: Permission.VIEW_INSTALLATION_REPORTS
+    },
     {
         key: 'admin-audit-logs',
         title: 'Audit Logs',

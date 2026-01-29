@@ -12,8 +12,10 @@ import {
     Alert,
     Snackbar,
     Avatar,
+    AvatarGroup,
     Chip,
     IconButton,
+    Tooltip,
     Dialog,
     DialogTitle,
     DialogContent,
@@ -29,9 +31,11 @@ import {
     AttachFile as AttachFileIcon,
     CalendarToday as CalendarIcon,
     CheckCircle as ApproveIcon,
+    CheckCircle,
     Cancel as RejectIcon,
     ArrowBack as ArrowBackIcon,
     Add as AddIcon,
+    BugReport as BugIcon,
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -52,6 +56,8 @@ import { FormatUtcTime } from "../utils/formatUtcTime";
 import { PAGE_TITLES } from "../constants/pageTitles";
 import CommentSection from "../components/CommentSection";
 import type { TaskAttachmentsResponse } from "../projectManagementTypes/taskAttachmentsType";
+import { useIsProjectManager } from "../hooks/useIsProjectManager";
+import { extractErrorMessage } from "../utils/errorHandler";
 
 export default function AdminTaskDetailsPage() {
     useSetPageTitle(PAGE_TITLES.TASKDETAIL);
@@ -59,6 +65,7 @@ export default function AdminTaskDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { priorities, statuses, members } = useAppData();
+    const isProjectManager = useIsProjectManager();
 
     const [task, setTask] = useState<TaskDetailResponse | null>(null);
     const [project, setProject] = useState<ProjectDetailsResponse | null>(null);
@@ -467,10 +474,11 @@ export default function AdminTaskDetailsPage() {
             setOpenSubTaskDialog(false);
             loadTaskDetails();
         } catch (error: any) {
-            console.error("Error creating subtask:", error);
+            console.error("Error saving task:", error);
+            const errorMessage = extractErrorMessage(error, "Failed to load applications data");
             setSnackbar({
                 open: true,
-                message: error?.response?.data?.message || "Failed to create subtask",
+                message: errorMessage || "Failed to save sub task",
                 severity: "error",
             });
         }
@@ -501,10 +509,11 @@ export default function AdminTaskDetailsPage() {
             setOpenBugTaskDialog(false);
             loadTaskDetails();
         } catch (error: any) {
-            console.error("Error creating bug task:", error);
+            console.error("Error saving task:", error);
+            const errorMessage = extractErrorMessage(error, "Failed to load applications data");
             setSnackbar({
                 open: true,
-                message: error?.response?.data?.message || "Failed to create bug task",
+                message: errorMessage || "Failed to save bug task",
                 severity: "error",
             });
         }
@@ -693,7 +702,7 @@ export default function AdminTaskDetailsPage() {
                         startIcon={<ApproveIcon />}
                         onClick={handleApprove}
                         size="large"
-                        disabled={task?.isRejected}
+                        disabled={task?.isRejected || !isProjectManager}
                     >
                         Approve
                     </Button>
@@ -703,7 +712,7 @@ export default function AdminTaskDetailsPage() {
                         startIcon={<RejectIcon />}
                         onClick={handleReject}
                         size="large"
-                        disabled={task?.isApproved || task?.isRejected}
+                        disabled={task?.isApproved || task?.isRejected || !isProjectManager}
                     >
                         Reject
                     </Button>
@@ -862,35 +871,44 @@ export default function AdminTaskDetailsPage() {
                                 </Button>
                             </Box>
                             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                                {task?.subTasks.map((subTask) => (
-                                    <Box
-                                        key={subTask.subTaskId}
-                                        sx={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            p: 1,
-                                            borderRadius: 1,
-                                            cursor: "pointer",
-                                            "&:hover": { bgcolor: "action.hover" },
-                                        }}
-                                        onClick={() => handleSubTaskClick(subTask.subTaskId)}
-                                    >
-                                        <FormControlLabel
-                                            control={<Checkbox defaultChecked />}
-                                            label={
-                                                <Box>
-                                                    <Typography variant="body2" fontWeight={600}>
-                                                        {subTask.taskCode}: {subTask.taskTitle}
-                                                    </Typography>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Created by {subTask.createdBy} • At: {FormatUtcTime.formatDateTime(subTask.createdAt)} • Assignee: {subTask.createdBy}
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                    </Box>
-                                ))}
+                                {task?.subTasks && task.subTasks.length > 0 ? (
+                                    task?.subTasks.map((subTask) => (
+                                        <Box
+                                            key={subTask.subTaskId}
+                                            sx={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                p: 1,
+                                                borderRadius: 1,
+                                                cursor: "pointer",
+                                                "&:hover": { bgcolor: "action.hover" },
+                                            }}
+                                            onClick={() => handleSubTaskClick(subTask.subTaskId)}
+                                        >
+                                            <FormControlLabel
+                                                control={<Checkbox defaultChecked />}
+                                                label={
+                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                        <CheckCircle sx={{ color: "success.main", fontSize: 20 }} />
+                                                        <Box>
+                                                            <Typography variant="body2" fontWeight={600}>
+                                                                {subTask.taskCode}: {subTask.taskTitle}
+                                                            </Typography>
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                Created by {subTask.createdBy} • At: {FormatUtcTime.formatDateTime(subTask.createdAt)} • Assignee: {subTask.createdBy}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                }
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        </Box>
+                                    ))
+                                ) : (
+                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 2 }}>
+                                        No sub tasks yet
+                                    </Typography>
+                                )}
                             </Box>
                         </Card>
 
@@ -927,13 +945,16 @@ export default function AdminTaskDetailsPage() {
                                             <FormControlLabel
                                                 control={<Checkbox defaultChecked />}
                                                 label={
-                                                    <Box>
-                                                        <Typography variant="body2" fontWeight={600}>
-                                                            {bugTask.taskCode}: {bugTask.taskTitle}
-                                                        </Typography>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            Created by {bugTask.createdBy} • At: {FormatUtcTime.formatDateTime(bugTask.createdAt)} • Assignee: {bugTask.createdBy}
-                                                        </Typography>
+                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                        <BugIcon sx={{ color: "error.main", fontSize: 20 }} />
+                                                        <Box>
+                                                            <Typography variant="body2" fontWeight={600}>
+                                                                {bugTask.taskCode}: {bugTask.taskTitle}
+                                                            </Typography>
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                Created by {bugTask.createdBy} • At: {FormatUtcTime.formatDateTime(bugTask.createdAt)} • Assignee: {bugTask.createdBy}
+                                                            </Typography>
+                                                        </Box>
                                                     </Box>
                                                 }
                                                 onClick={(e) => e.stopPropagation()}
@@ -1014,8 +1035,11 @@ export default function AdminTaskDetailsPage() {
                                                 .filter(s => s.entityType === 'Task')
                                                 .filter(s => {
                                                     // If approved, only show New, Publish, Cancel
-                                                    if (task?.isApproved) {
-                                                        return s.name === 'New' || s.name === 'Publish' || s.name === 'Cancel';
+                                                    if (task && task?.isApproved === true) {
+                                                        return (s.name === 'In Progress' || s.name === 'Completed' || s.name === 'On Hold' || s.name === 'Cancelled');
+                                                    }
+                                                    if (task && task?.isApproved === null) {
+                                                        return (s.name === 'New' || s.name === 'Published' || s.name === 'On Hold');
                                                     }
                                                     // If rejected, show all but disable selection
                                                     return true;
@@ -1093,13 +1117,35 @@ export default function AdminTaskDetailsPage() {
                                 </Box>
 
                                 {/* Due Date */}
-                                <Box>
+                                <Box sx={{ mb: 2 }}>
                                     <Typography variant="caption" color="text.secondary">
                                         Due Date
                                     </Typography>
                                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
                                         <CalendarIcon fontSize="small" color="action" />
                                         <Typography variant="body2">{formatDate(task?.dueDate || new Date())}</Typography>
+                                    </Box>
+                                </Box>
+
+                                {/* Members */}
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                                        Members ({task?.assignees?.length || 0})
+                                    </Typography>
+                                    <Box sx={{ mt: 1 }}>
+                                        <AvatarGroup max={10}>
+                                            {task?.assignees?.map((assignee, index) => (
+                                                <Tooltip key={index} title={assignee.memberName}>
+                                                    <Avatar
+                                                        src={assignee.memberImage}
+                                                        alt={assignee.memberName}
+                                                        sx={{ width: 32, height: 32 }}
+                                                    >
+                                                        {assignee.memberName.charAt(0)}
+                                                    </Avatar>
+                                                </Tooltip>
+                                            ))}
+                                        </AvatarGroup>
                                     </Box>
                                 </Box>
                             </Box>

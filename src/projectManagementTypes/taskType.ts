@@ -43,6 +43,8 @@ export interface TaskResponse {
     statusName: string;
     statusColor: string;
     statusId: number;
+    totalSubTasks: number;
+    totalBugTasks: number;
 }
 
 export interface TaskDetailResponse {
